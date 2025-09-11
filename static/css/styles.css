@@ -1,29 +1,59 @@
-/* Additional custom styles if needed beyond Tailwind */
+/* Variables */
+:root {
+    --primary: #1e3a8a;
+    --primary-foreground: #ffffff;
+    --secondary: #d4af37;
+    --secondary-foreground: #1e3a8a;
+    --background: #ffffff;
+    --foreground: #1f2937;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --border: #e5e7eb;
+}
+
+/* Font Families */
+.font-serif { font-family: 'Montserrat', serif; }
+.font-sans { font-family: 'Open Sans', sans-serif; }
+
+/* Colors */
+.bg-primary { background-color: var(--primary); }
+.text-primary-foreground { color: var(--primary-foreground); }
+.bg-secondary { background-color: var(--secondary); }
+.text-secondary { color: var(--secondary); }
+.text-secondary-foreground { color: var(--secondary-foreground); }
+.bg-background { background-color: var(--background); }
+.text-foreground { color: var(--foreground); }
+.bg-muted { background-color: var(--muted); }
+.text-muted-foreground { color: var(--muted-foreground); }
+.border-border { border-color: var(--border); }
+
+/* Navigation Link Hover Animation */
 .nav-link {
-  position: relative;
-  transition: all 0.3s ease;
+    position: relative;
+    transition: all 0.3s ease;
 }
 
 .nav-link::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--secondary);
-  transition: width 0.3s ease;
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--secondary);
+    transition: width 0.3s ease;
 }
 
 .nav-link:hover::after {
-  width: 100%;
+    width: 100%;
 }
 
 .nav-link:hover {
-  color: var(--secondary);
-  letter-spacing: 0.5px;
+    color: var(--secondary);
+    letter-spacing: 0.5px;
 }
 
+/* Quantity button styles */
 .quantity-btn {
   width: 24px;
   height: 24px;
