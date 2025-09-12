@@ -1,113 +1,233 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <!-- Hero Section -->
-    <section id="home" class="relative min-h-screen flex items-center justify-center overflow-hidden" style="background: linear-gradient(135deg, custom-oklch(0.12 0.08 240) 0%, custom-oklch(0.08 0.05 240) 100%);">
-        <div class="absolute inset-0 bg-black/20"></div>
-        <div class="relative z-10 text-center custom-text-white px-4">
-            <h1 class="text-5xl md:text-7xl font-black mb-6 animate-fade-in" style="font-family: 'Montserrat', serif;">
-                CHRONOS
-                <span class="block text-3xl md:text-5xl font-normal mt-2" style="color: custom-oklch(0.85 0.15 85);">LUXURY</span>
-            </h1>
-            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed" style="font-family: 'Open Sans', sans-serif;">
-                Descubre la colección más exclusiva de relojes de lujo que combinan elegancia atemporal y precisión suiza
-            </p>
-            <button class="px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl" style="background-color: custom-oklch(0.85 0.15 85); color: custom-oklch(0.12 0.08 240);">
-                Explorar Colección
-            </button>
+<div class="min-h-screen">
+    <section id="home" class="custom-bg-hero relative h-screen flex items-center justify-center overflow-hidden">
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/placeholder.svg?height=1080&width=1920');">
+            <div class="absolute inset-0 custom-bg-primary/60"></div>
         </div>
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <svg class="w-6 h-6 custom-text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
+
+        <div class="relative z-10 text-center custom-text-foreground max-w-4xl mx-auto px-4">
+            <h1 class="font-serif font-black text-5xl md:text-7xl mb-6">
+                PRECISIÓN
+                <span class="block custom-text-secondary">ATEMPORAL</span>
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">
+                Descubre la colección más exclusiva de relojes de lujo donde la elegancia se encuentra con la innovación
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
+                    Explorar Colección
+                </button>
+                <button class="px-8 py-3 border-2 border-custom-primary-foreground custom-text-primary-foreground font-semibold rounded-md hover:bg-primary-foreground hover:text-primary transition-colors">
+                    Relojes Exclusivos
+                </button>
+            </div>
         </div>
     </section>
 
-    <!-- Featured Watches Section -->
-    <section class="py-20 custom-bg-white">
+    <section class="py-20 custom-bg-background">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-black mb-4" style="font-family: 'Montserrat', serif; color: custom-oklch(0.12 0.08 240);">
-                    Relojes Destacados
+                <h2 class="font-serif font-black text-4xl md:text-5xl custom-text-foreground mb-4">
+                    Relojes <span class="custom-text-secondary">Destacados</span>
                 </h2>
-                <p class="text-xl custom-text-gray-600 max-w-2xl mx-auto" style="font-family: 'Open Sans', sans-serif;">
-                    Nuestra selección premium de timepieces excepcionales
+                <p class="text-xl custom-text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Una selección cuidadosa de las piezas más excepcionales de nuestra colección
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Watch Card 1 -->
-                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                {% for watch in featured_watches %}
+                <div class="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
                     <div class="aspect-square overflow-hidden">
-                        <img src="/../src/img/rolex-submariner.jpg" alt="Rolex Submariner" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <img src="{{ watch.image }}" alt="{{ watch.brand }} {{ watch.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     </div>
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-semibold" style="color: custom-oklch(0.85 0.15 85);">ROLEX</span>
-                            <div class="flex items-center">
-                                <span class="text-yellow-400">★★★★★</span>
-                                <span class="text-sm custom-text-gray-500 ml-1">(4.9)</span>
+                            <span class="text-sm font-semibold custom-text-secondary uppercase tracking-wider">{{ watch.brand }}</span>
+                            <div class="flex items-center space-x-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= watch.rating %}
+                                        <i data-lucide="star" class="w-4 h-4 fill-custom-secondary custom-text-secondary"></i>
+                                    {% else %}
+                                        <i data-lucide="star" class="w-4 h-4 text-gray-300"></i>
+                                    {% endif %}
+                                {% endfor %}
                             </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2" style="color: custom-oklch(0.12 0.08 240);">Submariner Date</h3>
-                        <p class="custom-text-gray-600 text-sm mb-4">Resistente al agua hasta 300m, movimiento automático perpetuo</p>
+                        <h3 class="font-serif font-bold text-xl custom-text-foreground mb-3">{{ watch.name }}</h3>
+                        <ul class="text-sm custom-text-muted-foreground mb-4 space-y-1">
+                            {% for feature in watch.features %}
+                            <li class="flex items-center">
+                                <i data-lucide="check" class="w-3 h-3 custom-text-secondary mr-2"></i>
+                                {{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
                         <div class="flex items-center justify-between">
-                            <span class="text-2xl font-bold" style="color: custom-oklch(0.12 0.08 240);">$12,550</span>
-                            <button class="add-to-cart px-4 py-2 rounded-lg font-semibold transition-colors" style="background-color: custom-oklch(0.85 0.15 85); color: custom-oklch(0.12 0.08 240);" data-watch='{"id":1,"name":"Submariner Date","brand":"ROLEX","price":12550,"image":"../src/img/rolex-submariner.jpg"}'>
-                                Agregar
+                            <span class="font-serif font-black text-2xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
+                            <button class="add-to-cart px-4 py-2 custom-bg-secondary custom-text-primary-foreground rounded-md hover:bg-secondary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
+                                Agregar al Carrito
                             </button>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 
-                <!-- Watch Card 2 -->
-                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
+    <section id="catalog" class="py-20 custom-bg-muted">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif font-black text-4xl md:text-5xl custom-text-foreground mb-4">
+                    Catálogo <span class="custom-text-secondary">Completo</span>
+                </h2>
+                <p class="text-xl custom-text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Explora nuestra amplia gama de relojes de lujo de las marcas más prestigiosas
+                </p>
+            </div>
+
+            <div class="flex flex-wrap gap-4 justify-center mb-12">
+                <button class="filter-btn active px-6 py-2 rounded-full border-2 border-custom-primary custom-bg-primary custom-text-primary-foreground font-medium transition-colors" data-filter="all">
+                    Todos
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="rolex">
+                    Rolex
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="omega">
+                    Omega
+                </button>
+                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="audemars">
+                    Audemars Piguet
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for watch in catalog_watches %}
+                <div class="watch-item group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1" data-brand="{{ watch.brand|lower|cut:' ' }}">
                     <div class="aspect-square overflow-hidden">
-                        <img src="../src/img/omega-speedmaster.jpg" alt="Omega Speedmaster" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                        <img src="{{ watch.image }}" alt="{{ watch.brand }} {{ watch.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     </div>
-                    <div class="p-6">
+                    <div class="p-4">
                         <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-semibold" style="color: custom-oklch(0.85 0.15 85);">OMEGA</span>
-                            <div class="flex items-center">
-                                <span class="text-yellow-400">★★★★★</span>
-                                <span class="text-sm custom-text-gray-500 ml-1">(4.8)</span>
+                            <span class="text-xs font-semibold custom-text-secondary uppercase tracking-wider">{{ watch.brand }}</span>
+                            <div class="flex items-center space-x-1">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= watch.rating %}
+                                        <i data-lucide="star" class="w-3 h-3 fill-custom-secondary custom-text-secondary"></i>
+                                    {% else %}
+                                        <i data-lucide="star" class="w-3 h-3 text-gray-300"></i>
+                                    {% endif %}
+                                {% endfor %}
                             </div>
                         </div>
-                        <h3 class="text-xl font-bold mb-2" style="color: custom-oklch(0.12 0.08 240);">Speedmaster Professional</h3>
-                        <p class="custom-text-gray-600 text-sm mb-4">El reloj lunar oficial, cronógrafo manual legendario</p>
+                        <h3 class="font-serif font-bold text-lg custom-text-foreground mb-2">{{ watch.name }}</h3>
                         <div class="flex items-center justify-between">
-                            <span class="text-2xl font-bold" style="color: custom-oklch(0.12 0.08 240);">$6,350</span>
-                            <button class="add-to-cart px-4 py-2 rounded-lg font-semibold transition-colors" style="background-color: custom-oklch(0.85 0.15 85); color: custom-oklch(0.12 0.08 240);" data-watch='{"id":2,"name":"Speedmaster Professional","brand":"OMEGA","price":6350,"image":"../src/img/omega-speedmaster.jpg"}'>
-                                Agregar
+                            <span class="font-serif font-black text-xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
+                            <button class="add-to-cart p-2 custom-bg-primary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
 
-                <!-- Watch Card 3 -->
-                <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-                    <div class="aspect-square overflow-hidden">
-                        <img src="../src/img/patek-philippe-calatrava.jpg" alt="Patek Philippe Calatrava" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+    <section id="exclusive" class="py-20 custom-bg-primary custom-text-primary-foreground">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="font-serif font-black text-4xl md:text-5xl custom-text-primary-foreground mb-4">
+                    Colección <span class="custom-text-secondary">Exclusiva</span>
+                </h2>
+                <p class="text-xl custom-text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Timepieces únicos creados para los conocedores más exigentes
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+                <div class="flex flex-col space-y-8">
+                    <div class="flex items-start space-x-4">
+                        <div class="p-3 rounded-full custom-bg-secondary custom-text-secondary-foreground">
+                            <i data-lucide="gem" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-serif font-bold text-lg mb-1">Materiales Excepcionales</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Oro de 18K, diamantes certificados y cristales de zafiro sintético para una durabilidad y belleza incomparables.
+                            </p>
+                        </div>
                     </div>
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-semibold" style="color: custom-oklch(0.85 0.15 85);">PATEK PHILIPPE</span>
-                            <div class="flex items-center">
-                                <span class="text-yellow-400">★★★★★</span>
-                                <span class="text-sm custom-text-gray-500 ml-1">(5.0)</span>
-                            </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="p-3 rounded-full custom-bg-secondary custom-text-secondary-foreground">
+                            <i data-lucide="bookmark" class="w-6 h-6"></i>
                         </div>
-                        <h3 class="text-xl font-bold mb-2" style="color: custom-oklch(0.12 0.08 240);">Calatrava</h3>
-                        <p class="custom-text-gray-600 text-sm mb-4">Elegancia pura en oro rosa, movimiento mecánico de manufactura</p>
-                        <div class="flex items-center justify-between">
-                            <span class="text-2xl font-bold" style="color: custom-oklch(0.12 0.08 240);">$32,100</span>
-                            <button class="add-to-cart px-4 py-2 rounded-lg font-semibold transition-colors" style="background-color: custom-oklch(0.85 0.15 85); color: custom-oklch(0.12 0.08 240);" data-watch='{"id":3,"name":"Calatrava","brand":"PATEK PHILIPPE","price":32100,"image":"../src/img/patek-philippe-calatrava.jpg"}'>
-                                Agregar
-                            </button>
+                        <div>
+                            <h3 class="font-serif font-bold text-lg mb-1">Ediciones Limitadas</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Cada pieza está numerada individualmente, garantizando exclusividad y valor de colección.
+                            </p>
                         </div>
+                    </div>
+
+                    <div class="flex items-start space-x-4">
+                        <div class="p-3 rounded-full custom-bg-secondary custom-text-secondary-foreground">
+                            <i data-lucide="crown" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-serif font-bold text-lg mb-1">Artesanía Suiza</h3>
+                            <p class="text-gray-300 leading-relaxed">
+                                Movimientos mecánicos fabricados a mano por maestros relojeros con décadas de experiencia.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button class="px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors self-start">
+                        Solicitar Catálogo Exclusivo
+                    </button>
+                </div>
+
+                <div class="bg-primary/50 rounded-2xl shadow-xl p-6 relative lg:mt-16">
+                    <div class="absolute top-0 right-6 transform -translate-y-1/2 bg-yellow-400 text-black px-3 py-1 text-sm font-semibold rounded-full">
+                        Edición Limitada
+                    </div>
+                    <img src="https://via.placeholder.com/600x600" alt="Royal Diamond Collection" class="w-full h-auto rounded-xl shadow-lg mb-6">
+                    <div class="text-center">
+                        <h3 class="font-serif font-black text-3xl custom-text-secondary mb-2">Royal Diamond Collection</h3>
+                        <p class="text-lg text-gray-300 mb-4">Solo 50 piezas en el mundo</p>
+                    </div>
+                    <ul class="text-lg space-y-2 mb-6">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="diamond" class="w-5 h-5 custom-text-secondary"></i>
+                            <span>127 diamantes certificados</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="crown" class="w-5 h-5 custom-text-secondary"></i>
+                            <span>Caja de oro rosa 18K</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="settings" class="w-5 h-5 custom-text-secondary"></i>
+                            <span>Movimiento perpetuo suizo</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="shield-check" class="w-5 h-5 custom-text-secondary"></i>
+                            <span>Garantía de por vida</span>
+                        </li>
+                    </ul>
+                    <div class="flex items-center justify-between border-t border-gray-700 pt-4">
+                        <span class="font-serif font-black text-3xl custom-text-secondary-foreground">$85,000</span>
+                        <button class="px-6 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
+                            Consultar Disponibilidad
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+</div>
 {% endblock %}

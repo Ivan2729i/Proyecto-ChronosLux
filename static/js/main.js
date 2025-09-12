@@ -1,37 +1,32 @@
-// Main JavaScript functionality
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize Lucide icons
-  const lucide = window.lucide; // Declare the lucide variable
-  if (typeof lucide !== "undefined") {
-    lucide.createIcons();
-  }
-});
+    // Initialize Lucide icons (solo una vez)
+    const lucide = window.lucide;
+    if (lucide) {
+        lucide.createIcons();
+    }
 
-// Tailwind configuration
-tailwind.config = {
-    theme: {
-        extend: {
-            colors: {
-                primary: '#1e3a8a',
-                'primary-foreground': '#ffffff',
-                secondary: '#d4af37',
-                'secondary-foreground': '#1e3a8a',
-                background: '#ffffff',
-                foreground: '#1f2937',
-                muted: '#f3f4f6',
-                'muted-foreground': '#6b7280',
-                border: '#e5e7eb'
-            },
-            fontFamily: {
-                'serif': ['Montserrat', 'serif'],
-                'sans': ['Open Sans', 'sans-serif']
+    // Tailwind configuration
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#090C27',
+                    'primary-foreground': '#ffffff',
+                    secondary: '#d4af37',
+                    'secondary-foreground': '#090C27',
+                    background: '#ffffff',
+                    foreground: '#1f2937',
+                    muted: '#f3f4f6',
+                    'muted-foreground': '#6b7280',
+                    border: '#e5e7eb'
+                },
+                fontFamily: {
+                    'serif': ['Montserrat', 'serif'],
+                    'sans': ['Open Sans', 'sans-serif']
+                }
             }
         }
     }
-}
-
-// Initialize Lucide icons
-    lucide.createIcons();
 
     // Cart functionality
     let cart = [];
@@ -51,7 +46,7 @@ tailwind.config = {
         lucide.createIcons();
     });
 
-    // Cart modal
+    // Cart modal functionality
     document.getElementById('cart-btn').addEventListener('click', function() {
         document.getElementById('cart-modal').classList.remove('hidden');
     });
@@ -60,7 +55,7 @@ tailwind.config = {
         document.getElementById('cart-modal').classList.add('hidden');
     });
 
-    // Add to cart functionality
+    // Add to cart functionality (This part seems to be from another file, but we'll keep it)
     document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function() {
             const watchData = {
@@ -169,62 +164,53 @@ tailwind.config = {
         updateCartUI();
     }
 
-    // Filter functionality
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const filter = this.dataset.filter;
+    // User modal functionality
+    const userIconBtn = document.getElementById('user-icon-btn');
+    const userModal = document.getElementById('user-modal');
+    const closeModal = document.getElementById('close-modal');
+    const switchToRegisterBtn = document.getElementById('switch-to-register').querySelector('a');
+    const switchToLoginBtn = document.getElementById('switch-to-login').querySelector('a');
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const modalTitle = document.getElementById('modal-title');
+    const switchTextLogin = document.getElementById('switch-to-login');
+    const switchTextRegister = document.getElementById('switch-to-register');
 
-            // Update active button
-            document.querySelectorAll('.filter-btn').forEach(b => {
-                b.classList.remove('active', 'bg-primary', 'text-primary-foreground');
-                b.classList.add('text-primary', 'hover:bg-primary', 'hover:text-primary-foreground');
-            });
-
-            this.classList.add('active', 'bg-primary', 'text-primary-foreground');
-            this.classList.remove('text-primary', 'hover:bg-primary', 'hover:text-primary-foreground');
-
-            // Filter watches
-            document.querySelectorAll('.watch-item').forEach(item => {
-                if (filter === 'all' || item.dataset.brand === filter) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+    // Open user modal
+    if (userIconBtn) {
+        userIconBtn.addEventListener('click', () => {
+            userModal.classList.remove('hidden');
         });
-    });
+    }
 
-// Abre el modal
-const userIcon = document.getElementById('user-icon');
-const userModal = document.getElementById('user-modal');
-const closeModalBtn = document.getElementById('close-modal');
-const goToRegisterBtn = document.getElementById('go-to-register');
-const goToLoginBtn = document.getElementById('go-to-login');
+    // Close modal
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            userModal.classList.add('hidden');
+        });
+    }
 
-// Formulario de login y register
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
+    // Switch to registration form
+    if (switchToRegisterBtn) {
+        switchToRegisterBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Evitar el comportamiento predeterminado del enlace
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            modalTitle.textContent = 'Regístrate';
+            switchTextRegister.classList.add('hidden');
+            switchTextLogin.classList.remove('hidden');
+        });
+    }
 
-// Mostrar el modal cuando se haga clic en el icono de usuario
-userIcon.addEventListener('click', () => {
-    userModal.classList.remove('hidden');
-    userModal.classList.add('flex'); // Asegura que el modal se muestre con display flex
-});
-
-// Cerrar el modal
-closeModalBtn.addEventListener('click', () => {
-    userModal.classList.add('hidden');
-    userModal.classList.remove('flex'); // Al cerrarlo, se oculta con display none
-});
-
-// Cambiar al formulario de registro
-goToRegisterBtn.addEventListener('click', () => {
-    loginForm.classList.add('hidden');
-    registerForm.classList.remove('hidden');
-});
-
-// Cambiar al formulario de inicio de sesión
-goToLoginBtn.addEventListener('click', () => {
-    registerForm.classList.add('hidden');
-    loginForm.classList.remove('hidden');
+    // Switch to login form
+    if (switchToLoginBtn) {
+        switchToLoginBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Evitar el comportamiento predeterminado del enlace
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            modalTitle.textContent = 'Iniciar sesión';
+            switchTextLogin.classList.add('hidden');
+            switchTextRegister.classList.remove('hidden');
+        });
+    }
 });

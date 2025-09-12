@@ -8,23 +8,18 @@
     <title>{% block title %}ChronosLux - Premium Timepieces{% endblock %}</title>
     <meta name="description" content="Discover the finest collection of luxury watches combining elegance and precision">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-    <!-- Link to external CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body class="font-sans antialiased">
 
-    <!-- Header -->
     <header class="sticky top-0 z-50 custom-bg-primary custom-text-primary-foreground shadow-lg">
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
@@ -35,7 +30,6 @@
                     <span class="font-serif font-black text-xl">ChronosLux</span>
                 </a>
 
-                <!-- Desktop Navigation -->
                 <nav class="hidden md:flex items-center space-x-8">
                     <a href="#home" class="nav-link font-medium">Inicio</a>
                     <a href="#catalog" class="nav-link font-medium">Catálogo</a>
@@ -43,7 +37,6 @@
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
                 </nav>
 
-                <!-- Search, Cart, and User Icon -->
                 <div class="flex items-center space-x-4">
                     <div class="hidden md:flex items-center space-x-2">
                         <input type="text" placeholder="Buscar relojes..." class="w-64 px-3 py-2 rounded-md bg-white text-gray-900">
@@ -53,73 +46,21 @@
                         </button>
                     </div>
 
+                    <button id="user-icon-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Usuario">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+
                     <button id="cart-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Carrito">
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
                         <span id="cart-count" class="absolute -top-2 -right-2 custom-bg-secondary custom-text-secondary-foreground min-w-5 h-5 flex items-center justify-center text-xs rounded-full hidden">0</span>
                     </button>
 
-                    <!-- Icono de Usuario (Para abrir el modal) -->
-                    <button id="user-icon" class="flex items-center cursor-pointer">
-                        <i data-lucide="user" class="w-6 h-6"></i>
-                    </button>
-
-                    <!-- Modal de Usuario -->
-                    <div id="user-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
-                        <div class="relative w-96 mx-auto mt-32 bg-white p-8 rounded-lg shadow-xl">
-                            <button id="close-modal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-900">
-                                <i data-lucide="x" class="w-6 h-6"></i>
-                            </button>
-
-                            <!-- Formulario de Iniciar Sesión -->
-                            <div id="login-form">
-                                <h2 class="text-xl font-semibold mb-4">Iniciar sesión</h2>
-                                <form action="#" method="POST">
-                                    <label for="username" class="block text-sm mb-2">Usuario</label>
-                                    <input type="text" id="username" name="username" placeholder="Ingresa tu usuario" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <label for="password" class="block text-sm mb-2">Contraseña</label>
-                                    <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <div class="flex justify-between items-center">
-                                        <button type="submit" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Iniciar sesión</button>
-                                        <button type="button" id="go-to-register" class="px-6 py-2 border-2 border-primary text-primary rounded-md hover:bg-primary/10">Registrarse</button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- Formulario de Registrarse -->
-                            <div id="register-form" class="hidden">
-                                <h2 class="text-xl font-semibold mb-4">Registrarse</h2>
-                                <form action="#" method="POST">
-                                    <label for="first-name" class="block text-sm mb-2">Nombre</label>
-                                    <input type="text" id="first-name" name="first-name" placeholder="Ingresa tu nombre" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <label for="last-name" class="block text-sm mb-2">Apellido</label>
-                                    <input type="text" id="last-name" name="last-name" placeholder="Ingresa tu apellido" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <label for="email" class="block text-sm mb-2">Correo electrónico</label>
-                                    <input type="email" id="email" name="email" placeholder="Ingresa tu correo electrónico" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <label for="new-password" class="block text-sm mb-2">Contraseña</label>
-                                    <input type="password" id="new-password" name="new-password" placeholder="Ingresa una contraseña" class="w-full px-4 py-2 mb-4 border rounded-md focus:outline-none" required>
-
-                                    <div class="flex justify-between items-center">
-                                        <button type="submit" class="px-6 py-2 bg-primary text-white rounded-md hover:bg-primary/90">Registrarse</button>
-                                        <button type="button" id="go-to-login" class="px-6 py-2 border-2 border-primary text-primary rounded-md hover:bg-primary/10">Iniciar sesión</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mobile Menu Button -->
                     <button id="mobile-menu-btn" class="md:hidden p-2 hover:bg-primary-foreground/10 rounded-md transition-colors">
                         <i data-lucide="menu" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Mobile Navigation -->
             <div id="mobile-menu" class="md:hidden py-4 border-t border-primary-foreground/20 hidden">
                 <nav class="flex flex-col space-y-4">
                     <a href="#home" class="nav-link font-medium">Inicio</a>
@@ -137,11 +78,9 @@
         </div>
     </header>
 
-    <!-- Main Content Block -->
     {% block content %}
     {% endblock %}
 
-    <!-- Footer -->
     <footer id="contact" class="custom-bg-foreground text-white py-16">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -200,7 +139,6 @@
         </div>
     </footer>
 
-    <!-- Shopping Cart Modal -->
     <div id="cart-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
         <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
             <div class="flex items-center justify-between p-6 border-b">
@@ -224,7 +162,57 @@
         </div>
     </div>
 
-    <!-- Link to external JS -->
+    <div id="user-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h2 id="modal-title" class="font-serif font-bold text-xl">Iniciar sesión</h2>
+                <button id="close-modal" class="p-2 hover:bg-gray-100 rounded-md">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <form id="login-form">
+                    <div class="mb-4">
+                        <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="login-email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                        <input type="password" id="login-password" name="password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <button type="submit" class="w-full py-2 custom-bg-primary custom-text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors">Iniciar sesión</button>
+                </form>
+
+                <form id="register-form" class="hidden">
+                    <div class="mb-4">
+                        <label for="register-name" class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="register-name" name="name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="register-lastname" class="block text-sm font-medium text-gray-700">Apellidos</label>
+                        <input type="text" id="register-lastname" name="lastname" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="register-email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="register-email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <div class="mb-6">
+                        <label for="register-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                        <input type="password" id="register-password" name="password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                    </div>
+                    <button type="submit" class="w-full py-2 custom-bg-primary custom-text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors">Regístrate</button>
+                </form>
+            </div>
+            <div class="p-6 border-t text-center text-sm text-gray-600">
+                <p>
+                    <span id="switch-to-register">¿No tienes una cuenta? <a href="#" class="font-semibold text-primary hover:underline">Regístrate</a></span>
+                    <span id="switch-to-login" class="hidden">¿Ya tienes una cuenta? <a href="#" class="font-semibold text-primary hover:underline">Inicia sesión</a></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+
     <script src="{% static 'js/main.js' %}"></script>
 
 </body>
