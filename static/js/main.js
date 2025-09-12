@@ -29,6 +29,7 @@ tailwind.config = {
         }
     }
 }
+<<<<<<< HEAD
 
 // Initialize Lucide icons
     lucide.createIcons();
@@ -193,3 +194,5 @@ tailwind.config = {
             });
         });
     });
+=======
+>>>>>>> 9cc1c6076f5768c7ed82c704e561d0b36d73e543
