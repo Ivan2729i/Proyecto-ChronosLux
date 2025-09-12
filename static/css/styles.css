@@ -73,33 +73,3 @@
   background: #f3f4f6;
 }
 
-/* Modal */
-#user-modal {
-    display: none;
-    justify-content: center;
-    align-items: center;
-}
-
-#user-modal .relative {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 400px;
-    margin: 0 auto;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Diseño del icono de usuario */
-#user-icon {
-    font-size: 24px;
-}
-
-/* Botones en los formularios */
-button {
-    transition: all 0.3s ease;
-}
-
-button:hover {
-    background-color: var(--primary);
-    color: white;
-}
