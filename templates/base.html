@@ -23,10 +23,160 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
 <body class="font-sans antialiased">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-primary text-primary-foreground shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="{% url 'home' %}" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-secondary rounded-full flex items-center justify-center">
+                        <span class="text-secondary-foreground font-serif font-black text-sm">C</span>
+                    </div>
+                    <span class="font-serif font-black text-xl">CHRONOS</span>
+                </a>
+
+                <!-- Desktop Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="nav-link font-medium">Inicio</a>
+                    <a href="#catalog" class="nav-link font-medium">Catálogo</a>
+                    <a href="#exclusive" class="nav-link font-medium">Exclusivos</a>
+                    <a href="#contact" class="nav-link font-medium">Contacto</a>
+                </nav>
+
+                <!-- Search and Cart -->
+                <div class="flex items-center space-x-4">
+                    <div class="hidden md:flex items-center space-x-2">
+                        <input type="text" placeholder="Buscar relojes..." class="w-64 px-3 py-2 rounded-md bg-white text-gray-900">
+                        <button class="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <button id="cart-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors">
+                        <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-secondary text-secondary-foreground min-w-5 h-5 flex items-center justify-center text-xs rounded-full hidden">0</span>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn" class="md:hidden p-2 hover:bg-primary-foreground/10 rounded-md transition-colors">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="md:hidden py-4 border-t border-primary-foreground/20 hidden">
+                <nav class="flex flex-col space-y-4">
+                    <a href="#home" class="nav-link font-medium">Inicio</a>
+                    <a href="#catalog" class="nav-link font-medium">Catálogo</a>
+                    <a href="#exclusive" class="nav-link font-medium">Exclusivos</a>
+                    <a href="#contact" class="nav-link font-medium">Contacto</a>
+                    <div class="flex items-center space-x-2 pt-2">
+                        <input type="text" placeholder="Buscar relojes..." class="flex-1 px-3 py-2 rounded-md bg-white text-gray-900">
+                        <button class="px-3 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Block -->
     {% block content %}
     {% endblock %}
 
+<<<<<<< HEAD
+    <!-- Footer -->
+    <footer id="contact" class="bg-foreground text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center">
+                            <span class="text-secondary-foreground font-serif font-black text-lg">C</span>
+                        </div>
+                        <span class="font-serif font-black text-2xl">CHRONOS</span>
+                    </div>
+                    <p class="text-gray-300 leading-relaxed mb-6 max-w-md">
+                        Más de 50 años de experiencia en relojería de lujo. Somos especialistas en las marcas más prestigiosas del mundo.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-secondary transition-colors">
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-secondary transition-colors">
+                            <i data-lucide="instagram" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-secondary transition-colors">
+                            <i data-lucide="twitter" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-serif font-bold text-lg mb-4">Enlaces Rápidos</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#home" class="hover:text-secondary transition-colors">Inicio</a></li>
+                        <li><a href="#catalog" class="hover:text-secondary transition-colors">Catálogo</a></li>
+                        <li><a href="#exclusive" class="hover:text-secondary transition-colors">Exclusivos</a></li>
+                        <li><a href="#contact" class="hover:text-secondary transition-colors">Contacto</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-serif font-bold text-lg mb-4">Contacto</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                            <span>+1 (555) 123-4567</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                            <span>info@chronosluxury.com</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                            <span>123 Luxury Ave, NYC</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 Chronos Luxury. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal" class="fixed inset-0 bg-black/50 z-50 hidden">
+        <div class="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-xl">
+            <div class="flex items-center justify-between p-6 border-b">
+                <h2 class="font-serif font-bold text-xl">Carrito de Compras</h2>
+                <button id="close-cart" class="p-2 hover:bg-gray-100 rounded-md">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6">
+                <p class="text-gray-500 text-center">Tu carrito está vacío</p>
+            </div>
+            <div class="border-t p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <span class="font-semibold text-lg">Total:</span>
+                    <span id="cart-total" class="font-serif font-black text-2xl text-primary">$0</span>
+                </div>
+                <button id="checkout-btn" class="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50" disabled>
+                    Proceder al Pago
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link to external JS -->
+<script src="{% static 'js/main.js' %}"></script>
+
+=======
     <!-- Link to external JS -->
     <script src="{% static 'js/main.js' %}"></script>
+>>>>>>> 9cc1c6076f5768c7ed82c704e561d0b36d73e543
 </body>
 </html>
