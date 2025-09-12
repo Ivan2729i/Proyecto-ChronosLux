@@ -193,3 +193,38 @@ tailwind.config = {
             });
         });
     });
+
+// Abre el modal
+const userIcon = document.getElementById('user-icon');
+const userModal = document.getElementById('user-modal');
+const closeModalBtn = document.getElementById('close-modal');
+const goToRegisterBtn = document.getElementById('go-to-register');
+const goToLoginBtn = document.getElementById('go-to-login');
+
+// Formulario de login y register
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+
+// Mostrar el modal cuando se haga clic en el icono de usuario
+userIcon.addEventListener('click', () => {
+    userModal.classList.remove('hidden');
+    userModal.classList.add('flex'); // Asegura que el modal se muestre con display flex
+});
+
+// Cerrar el modal
+closeModalBtn.addEventListener('click', () => {
+    userModal.classList.add('hidden');
+    userModal.classList.remove('flex'); // Al cerrarlo, se oculta con display none
+});
+
+// Cambiar al formulario de registro
+goToRegisterBtn.addEventListener('click', () => {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+});
+
+// Cambiar al formulario de inicio de sesión
+goToLoginBtn.addEventListener('click', () => {
+    registerForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+});
