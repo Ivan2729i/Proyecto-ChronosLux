@@ -31,3 +31,10 @@ media/
 config.py
 settings.py
 *.key
+
+# Ignorar todos los models.py y views.py en cualquier app
+*/models.py
+*/views.py
+
+# Ignorar todas las migraciones de Django
+*/migrations/

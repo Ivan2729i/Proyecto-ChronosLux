@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from .models import Watch
 
 def home(request):
     featured_watches = [
@@ -31,14 +30,14 @@ def home(request):
             'features': ['Caja octagonal icónica', 'Movimiento ultra-delgado', 'Acabado artesanal']
         }
     ]
-    
+
     catalog_watches = [
         {
             'id': 4,
             'name': 'Datejust 36',
             'brand': 'Rolex',
             'price': 8900,
-            'image': '/static/img/',
+            'image': '/static/img/placeholder.jpg',
             'rating': 4.8,
             'features': ['Acero y oro', 'Fecha instantánea', 'Movimiento perpetuo']
         },
@@ -79,7 +78,7 @@ def home(request):
             'features': ['Diseño clásico', 'Movimiento Co-Axial', 'Caja delgada']
         }
     ]
-    
+
     context = {
         'featured_watches': featured_watches,
         'catalog_watches': catalog_watches
