@@ -8,7 +8,7 @@ def home(request):
             'name': 'Submariner Date',
             'brand': 'Rolex',
             'price': 12500,
-            'image': '/placeholder.svg?height=400&width=400',
+            'image': '/static/img/rolex-submariner.jpg',
             'rating': 5.0,
             'features': ['Resistente al agua 300m', 'Movimiento automático', 'Cristal de zafiro']
         },
@@ -38,7 +38,7 @@ def home(request):
             'name': 'Datejust 36',
             'brand': 'Rolex',
             'price': 8900,
-            'image': '/placeholder.svg?height=300&width=300',
+            'image': '/static/img/',
             'rating': 4.8,
             'features': ['Acero y oro', 'Fecha instantánea', 'Movimiento perpetuo']
         },

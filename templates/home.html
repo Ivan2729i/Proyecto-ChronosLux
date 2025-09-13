@@ -2,32 +2,30 @@
 
 {% block content %}
 <div class="min-h-screen">
-    <!-- Hero Section -->
     <section id="home" class="custom-bg-hero relative h-screen flex items-center justify-center overflow-hidden">
         <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('/placeholder.svg?height=1080&width=1920');">
-            <div class="absolute inset-0 custom-bg-primary/60"></div>
+            <div class="absolute inset-0 bg-[#090C27]/60"></div>
         </div>
 
         <div class="relative z-10 text-center custom-text-foreground max-w-4xl mx-auto px-4">
-            <h1 class="font-serif font-black text-5xl md:text-7xl mb-6">
+            <h1 class="font-serif font-black text-5xl md:text-7xl mb-6 text-white">
                 PRECISIÓN
                 <span class="block custom-text-secondary">ATEMPORAL</span>
             </h1>
-            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p class="text-xl md:text-2xl mb-8 max-w-2xl mx-auto leading-relaxed text-white">
                 Descubre la colección más exclusiva de relojes de lujo donde la elegancia se encuentra con la innovación
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <button class="px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
+                <button class="btn-animado px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
                     Explorar Colección
                 </button>
-                <button class="px-8 py-3 border-2 border-custom-primary-foreground custom-text-primary-foreground font-semibold rounded-md hover:bg-primary-foreground hover:text-primary transition-colors">
+                <button class="btn-animado-outline px-8 py-3 border-2 border-custom-primary-foreground custom-text-primary-foreground font-semibold rounded-md hover:bg-primary-foreground hover:text-primary transition-colors">
                     Relojes Exclusivos
                 </button>
             </div>
         </div>
     </section>
 
-    <!-- Featured Watches -->
     <section class="py-20 custom-bg-background">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
@@ -69,7 +67,7 @@
                         </ul>
                         <div class="flex items-center justify-between">
                             <span class="font-serif font-black text-2xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
-                            <button class="add-to-cart px-4 py-2 custom-bg-secondary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
+                            <button class="btn-animado add-to-cart px-4 py-2 custom-bg-secondary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
                                 Agregar al Carrito
                             </button>
                         </div>
@@ -80,7 +78,6 @@
         </div>
     </section>
 
-    <!-- Catalog Section -->
     <section id="catalog" class="py-20 custom-bg-muted">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
@@ -92,18 +89,17 @@
                 </p>
             </div>
 
-            <!-- Filters -->
             <div class="flex flex-wrap gap-4 justify-center mb-12">
-                <button class="filter-btn active px-6 py-2 rounded-full border-2 border-custom-primary custom-bg-primary custom-text-primary-foreground font-medium transition-colors" data-filter="all">
+                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="all">
                     Todos
                 </button>
-                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="rolex">
+                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="rolex">
                     Rolex
                 </button>
-                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="omega">
+                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="omega">
                     Omega
                 </button>
-                <button class="filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="audemars">
+                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="audemars">
                     Audemars Piguet
                 </button>
             </div>
@@ -130,7 +126,7 @@
                         <h3 class="font-serif font-bold text-lg custom-text-foreground mb-2">{{ watch.name }}</h3>
                         <div class="flex items-center justify-between">
                             <span class="font-serif font-black text-xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
-                            <button class="add-to-cart p-2 custom-bg-primary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
+                            <button class="btn-animado hover:text-primary-foreground add-to-cart p-2 custom-bg-primary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -141,39 +137,80 @@
         </div>
     </section>
 
-    <!-- Exclusive Section -->
-    <section id="exclusive" class="py-20 custom-bg-primary custom-text-primary-foreground">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h2 class="font-serif font-black text-4xl md:text-5xl mb-6">
-                        Colección <span class="custom-text-secondary">Exclusiva</span>
-                    </h2>
-                    <p class="text-xl leading-relaxed mb-8">
-                        Piezas únicas y ediciones limitadas disponibles solo para nuestros clientes más distinguidos.
-                        Cada reloj cuenta una historia de artesanía excepcional y tradición horológica.
-                    </p>
-                    <div class="space-y-4 mb-8">
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="crown" class="w-6 h-6 custom-text-secondary"></i>
-                            <span class="text-lg">Ediciones limitadas numeradas</span>
+    <section id="exclusive" class="exclusive-section">
+        <div class="container">
+            <div class="exclusive-header">
+                <div class="exclusive-icon-title">
+                    <img src="/static/img/crown.png" alt="Corona" class="exclusive-img-large">
+                </div>
+                <h2 class="exclusive-title">
+                    Colección <span class="custom-text-secondary">Exclusiva</span>
+                </h2>
+                <p class="exclusive-subtitle">
+                    Timepieces únicos creados para los conocedores más exigentes
+                </p>
+            </div>
+
+            <div class="exclusive-grid">
+                <div class="exclusive-left">
+                    <div class="exclusive-item">
+                        <div class="exclusive-icon">
+                            <img src="/static/img/diamond.png" alt="Diamante" class="exclusive-img">
                         </div>
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="shield-check" class="w-6 h-6 custom-text-secondary"></i>
-                            <span class="text-lg">Certificado de autenticidad</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <i data-lucide="truck" class="w-6 h-6 custom-text-secondary"></i>
-                            <span class="text-lg">Entrega personalizada</span>
+                        <div>
+                            <h3 class="exclusive-item-title">Materiales Excepcionales</h3>
+                            <p class="exclusive-item-text">
+                                Oro de 18K, diamantes certificados y cristales de zafiro sintético para una durabilidad y belleza incomparable.
+                            </p>
                         </div>
                     </div>
-                    <button class="px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
-                        Ver Colección Exclusiva
+
+                    <div class="exclusive-item">
+                        <div class="exclusive-icon">
+                            <img src="/static/img/exclusive.png" alt="Exclusivo" class="exclusive-img">
+                        </div>
+                        <div>
+                            <h3 class="exclusive-item-title">Ediciones Limitadas</h3>
+                            <p class="exclusive-item-text">
+                                Cada pieza está numerada individualmente, garantizando exclusividad y valor de colección.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="exclusive-item">
+                        <div class="exclusive-icon">
+                            <img src="/static/img/crown.png" alt="Corona" class="exclusive-img">
+                        </div>
+                        <div>
+                            <h3 class="exclusive-item-title">Artesanía Suiza</h3>
+                            <p class="exclusive-item-text">
+                                Movimientos mecánicos fabricados a mano por maestros relojeros con décadas de experiencia.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button class="exclusive-btn btn-animado">
+                        Solicitar Catálogo Exclusivo
                     </button>
                 </div>
-                <div class="relative">
-                    <img src="/placeholder.svg?height=600&width=500" alt="Colección Exclusiva" class="w-full rounded-2xl shadow-2xl">
-                    <div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-2xl"></div>
+
+                <div class="exclusive-card">
+                    <div class="exclusive-badge">Edición Limitada</div>
+                    <img src="/static/img/rolex-oro.jpg" alt="Royal Diamond Collection" class="exclusive-card-img">
+                    <div class="exclusive-card-text">
+                        <h3 class="exclusive-card-title">Royal Diamond Collection</h3>
+                        <p class="exclusive-card-subtitle">Solo 50 piezas en el mundo</p>
+                    </div>
+                    <ul class="exclusive-list">
+                        <li>127 diamantes certificados</li>
+                        <li>Caja de oro rosa 18K</li>
+                        <li>Movimiento perpetuo suizo</li>
+                        <li>Garantía de por vida</li>
+                    </ul>
+                    <div class="exclusive-footer">
+                        <span class="exclusive-price">$85,000</span>
+                        <button class="exclusive-btn btn-animado">Consultar Disponibilidad</button>
+                    </div>
                 </div>
             </div>
         </div>
