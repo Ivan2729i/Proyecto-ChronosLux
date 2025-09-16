@@ -1,40 +1,77 @@
-# Archivos del entorno virtual
+# ========================
+# ENTORNOS Y DEPENDENCIAS
+# ========================
+# Entornos virtuales
 .venv/
 env/
+venv/
+ENV/
 
-# Archivos de configuraciones del IDE (PyCharm, VSCode, etc.)
-.idea/
-.vscode/
-
-# Archivos de compilación
-*.pyc
+# Dependencias descargadas
+__pycache__/
+*.py[cod]
 *.pyo
 *.pyd
-__pycache__/
+*.so
 
-# Archivos temporales de sistema operativo
+# ========================
+# CONFIGURACIÓN DEL IDE
+# ========================
+# PyCharm / IntelliJ
+.idea/
+# VSCode
+.vscode/
+*.code-workspace
+
+# ========================
+# ARCHIVOS TEMPORALES
+# ========================
+# SO
 Thumbs.db
 .DS_Store
 
-# Archivos de logs
+# Logs
 *.log
 
-# Archivos generados por Django
+# ========================
+# ARCHIVOS DE DJANGO
+# ========================
+# Base de datos SQLite local
+db.sqlite3
 *.sqlite3
 
-# Archivos estáticos y de base de datos (si no los quieres en Git)
+# Archivos compilados de traducciones
+*.mo
+
+# Archivos estáticos y de usuario (generados, no fuente)
 static/
 media/
 
-# Archivos de configuración sensible
+# ========================
+# CONFIGURACIÓN SENSIBLE
+# ========================
 .env
-config.py
-settings.py
+*.env
 *.key
+config.py
 
-# Ignorar todos los models.py y views.py en cualquier app
-*/models.py
-*/views.py
+# settings local (mantén tu settings de prod versionado)
+settings.py
 
-# Ignorar todas las migraciones de Django
+# ========================
+# MIGRACIONES
+# ========================
 */migrations/
+!*/migrations/__init__.py  # deja solo los __init__.py
+
+# ========================
+# EXCEPCIONES (mantener en git)
+# ========================
+!accounts/models.py
+!accounts/views.py
+!accounts/urls.py
+!accounts/admin.py
+!accounts/forms.py
+!accounts/migrations/
+!templates/registration/
+!watches/migrations/
