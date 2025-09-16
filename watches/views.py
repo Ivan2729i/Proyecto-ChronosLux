@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-def home(request):
+def build_home_context():
     featured_watches = [
         {
             'id': 1,
@@ -79,8 +79,8 @@ def home(request):
         }
     ]
 
-    context = {
-        'featured_watches': featured_watches,
-        'catalog_watches': catalog_watches
-    }
-    return render(request, 'home.html', context)
+    return {'featured_watches': featured_watches, 'catalog_watches': catalog_watches}
+
+def home(request):
+    return render(request, 'home.html', build_home_context())
+

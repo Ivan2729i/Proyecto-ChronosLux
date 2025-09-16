@@ -168,8 +168,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const userIconBtn = document.getElementById('user-icon-btn');
     const userModal = document.getElementById('user-modal');
     const closeModal = document.getElementById('close-modal');
-    const switchToRegisterBtn = document.getElementById('switch-to-register').querySelector('a');
-    const switchToLoginBtn = document.getElementById('switch-to-login').querySelector('a');
+    const _switchToRegister = document.getElementById('switch-to-register');
+    const switchToRegisterBtn = _switchToRegister ? _switchToRegister.querySelector('a') : null;
+    const _switchToLogin = document.getElementById('switch-to-login');
+    const switchToLoginBtn = _switchToLogin ? _switchToLogin.querySelector('a') : null;
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
     const modalTitle = document.getElementById('modal-title');
@@ -179,14 +181,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Open user modal
     if (userIconBtn) {
         userIconBtn.addEventListener('click', () => {
-            userModal.classList.remove('hidden');
+            if (userModal) { userModal.classList.remove('hidden'); }
         });
     }
 
     // Close modal
     if (closeModal) {
         closeModal.addEventListener('click', () => {
-            userModal.classList.add('hidden');
+            if (userModal) { userModal.classList.add('hidden'); }
         });
     }
 
@@ -213,4 +215,18 @@ document.addEventListener("DOMContentLoaded", () => {
             switchTextRegister.classList.remove('hidden');
         });
     }
+});
+
+// Fallback robusto para abrir/cerrar el modal por delegación
+document.addEventListener('click', (e) => {
+  // abrir
+  if (e.target.closest('#user-icon-btn')) {
+    const modal = document.getElementById('user-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+  // cerrar
+  if (e.target.closest('#close-modal')) {
+    const modal = document.getElementById('user-modal');
+    if (modal) modal.classList.add('hidden');
+  }
 });
