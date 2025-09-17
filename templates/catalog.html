@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen py-20 custom-bg-background">
+  <div class="container mx-auto px-4">
+
+    <div class="text-center mb-10">
+      <h1 class="font-serif font-black text-4xl md:text-5xl custom-text-foreground mb-4">
+                    Catálogo <span class="custom-text-secondary">Completo</span>
+      </h1>
+      <p class="text-xl custom-text-muted-foreground max-w-3xl mx-auto">
+        Explora nuestra colección completa de relojes de lujo y encuentra el timepiece perfecto
+      </p>
+    </div>
+
+    {% include "catalog/_filters_bar.html" %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for watch in catalog_watches %}
+        {% include "catalog/_product_card.html" with watch=watch %}
+      {% empty %}
+        <div class="col-span-full text-center text-gray-500 py-16">
+          No se encontraron relojes con esos filtros.
+        </div>
+      {% endfor %}
+    </div>
+
+    {# Paginación #}
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="pagination mt-10 flex items-center justify-center gap-2" aria-label="Pagination">
+        {% with qs=querystring %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+              <span class="px-4 py-2 rounded-lg bg-primary text-white font-semibold">{{ num }}</span>
+            {% else %}
+              <a class="px-4 py-2 rounded-lg border hover:bg-gray-100"
+                 href="{% if qs %}?{{ qs }}&page={{ num }}{% else %}?page={{ num }}{% endif %}">
+                {{ num }}
+              </a>
+            {% endif %}
+          {% endfor %}
+        {% endwith %}
+      </nav>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
