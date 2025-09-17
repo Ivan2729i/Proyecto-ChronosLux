@@ -28,8 +28,8 @@ def _require_letters_min2(value: str, label: str) -> str:
     if len(v) < 2:
         raise ValidationError(f"{label} debe tener al menos 2 caracteres.")
     if not NAME_RE.match(v):
-        raise ValidationError(f"{label} solo puede contener letras, acentos, espacios o ' (apóstrofo).")
-    # Si puso varias palabras en NOMBRE, cada una debe tener >=2 (no exigimos cantidad fija)
+        raise ValidationError(f"{label} solo puede contener letras, acentos o espacios.")
+    # Si puso varias palabras en NOMBRE, cada una debe tener >=2
     parts = [p for p in re.split(r"\s+", v) if p]
     for p in parts:
         if len(p) < 2:
@@ -41,7 +41,7 @@ def _require_two_surnames(value: str) -> str:
     if not v:
         raise ValidationError("Apellidos son requeridos.")
     if not NAME_RE.match(v):
-        raise ValidationError("Apellidos solo pueden contener letras, acentos, espacios o ' (apóstrofo).")
+        raise ValidationError("Apellidos solo pueden contener letras, acentos o espacios.")
     parts = [p for p in re.split(r"\s+", v) if p]
     if len(parts) != 2:
         raise ValidationError("Debes ingresar dos apellidos (paterno y materno).")

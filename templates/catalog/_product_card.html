@@ -1,0 +1,88 @@
+{# templates/catalog/_product_card.html #}
+<div class="watch-item group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+     data-brand="{{ watch.brand|lower|cut:' ' }}">
+
+  <div class="relative aspect-square overflow-hidden">
+    <img src="{{ watch.image }}" alt="{{ watch.brand }} {{ watch.name }}"
+         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+
+    {# Chip de tipo (Deportivo / Elegante / etc.) #}
+    {% if watch.type %}
+      {% with t=watch.type|lower %}
+      <span class="absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full
+                   text-white shadow
+                   {% if 'deport' in t %} bg-blue-600/90
+                   {% elif 'eleg' in t %} bg-emerald-600/90
+                   {% elif 'clás' in t or 'clas' in t %} bg-amber-600/90
+                   {% else %} bg-gray-700/90 {% endif %}">
+        {{ watch.type }}
+      </span>
+      {% endwith %}
+    {% endif %}
+
+    {# Botón de favoritos (solo UI) #}
+    <button type="button"
+            class="fav-toggle absolute top-3 right-3 grid place-items-center w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow
+                   transition-colors"
+            aria-label="Agregar a favoritos"
+            data-watch-id="{{ watch.id }}">
+      <i data-lucide="heart" class="w-5 h-5 text-gray-600"></i>
+    </button>
+  </div>
+
+  <div class="p-4">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-xs font-semibold custom-text-secondary uppercase tracking-wider">
+        {{ watch.brand }}
+      </span>
+
+      {# Reseñas: estrellas + número (p. ej. (4.8)) #}
+      <div class="flex items-center space-x-1">
+        {% for i in "12345" %}
+          {% if forloop.counter <= watch.rating %}
+            <i data-lucide="star" class="w-4 h-4 fill-custom-secondary custom-text-secondary"></i>
+          {% else %}
+            <i data-lucide="star" class="w-4 h-4 text-gray-300"></i>
+          {% endif %}
+        {% endfor %}
+        <span class="text-xs text-gray-500">({{ watch.rating }})</span>
+      </div>
+    </div>
+
+    <h3 class="font-serif font-bold text-lg custom-text-foreground mb-2">{{ watch.name }}</h3>
+
+    {# Lista breve de specs opcional #}
+    {% if watch.features %}
+      <ul class="text-xs custom-text-muted-foreground mb-3 space-y-1">
+        {% for feature in watch.features|slice:":3" %}
+          <li class="flex items-center">
+            <i data-lucide="check" class="w-3 h-3 custom-text-secondary mr-2"></i>
+            {{ feature }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <div class="flex items-end justify-between">
+      <div class="flex items-baseline gap-2">
+        <span class="font-serif font-black text-xl custom-text-foreground">
+          ${{ watch.price|floatformat:0 }}
+        </span>
+        {% if watch.old_price %}
+          <span class="text-sm text-gray-400 line-through">
+            ${{ watch.old_price|floatformat:0 }}
+          </span>
+        {% endif %}
+      </div>
+
+      <button class="btn-animado hover:text-primary-foreground add-to-cart p-2 custom-bg-primary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              data-watch-id="{{ watch.id }}"
+              data-watch-name="{{ watch.name }}"
+              data-watch-brand="{{ watch.brand }}"
+              data-watch-price="{{ watch.price }}"
+              data-watch-image="{{ watch.image }}">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+      </button>
+    </div>
+  </div>
+</div>
