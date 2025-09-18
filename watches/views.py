@@ -1,6 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from .models import Producto, Categoria
+from .models import Producto, Categoria, Resena
 
 def build_home_context():
     featured_watches = [
@@ -159,3 +159,19 @@ def catalog(request):
         'tipos': tipos_disponibles,
         'generos': generos_disponibles,
     })
+
+def product_detail(request, producto_id):
+    # Usamos get_object_or_404 para obtener el producto o mostrar un error 404 si no existe
+    producto = get_object_or_404(
+        Producto.objects.select_related('categoria', 'marca', 'imgproducto'),
+        pk=producto_id
+    )
+
+    # Obtenemos todas las reseñas asociadas a este producto
+    reseñas = Resena.objects.filter(producto=producto).order_by('-fecha')
+
+    context = {
+        'producto': producto,
+        'reseñas': reseñas,
+    }
+    return render(request, 'catalog/product_detail.html', context)
