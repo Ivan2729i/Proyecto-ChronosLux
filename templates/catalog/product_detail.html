@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+
+    {# Sección de Imagen #}
+    <div class="bg-gray-100 rounded-lg p-8">
+      <img src="{% get_static_prefix %}img/{{ producto.imgproducto.url }}" alt="{{ producto.marca.nombre }} {{ producto.nombre }}" class="w-full h-auto object-contain">
+    </div>
+
+    {# Sección de Detalles del Producto #}
+    <div>
+      <span class="text-sm font-semibold custom-text-secondary uppercase">{{ producto.marca.nombre }}</span>
+      <h1 class="text-4xl font-bold font-serif my-2 custom-text-foreground">{{ producto.nombre }}</h1>
+      <p class="text-3xl font-black custom-text-foreground mb-6">${{ producto.precio|floatformat:0 }}</p>
+
+      <div class="border-t border-gray-200 pt-6">
+        <h3 class="text-lg font-semibold mb-3 custom-text-foreground">Especificaciones</h3>
+        <ul class="space-y-2 text-gray-700"> {# Color de texto ajustado #}
+          {% if producto.descripcion1 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion1 }}</li>{% endif %}
+          {% if producto.descripcion2 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion2 }}</li>{% endif %}
+          {% if producto.descripcion3 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion3 }}</li>{% endif %}
+
+          {# ✅ Eliminados los asteriscos y usada etiqueta <strong> #}
+          <li><i data-lucide="package" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Material:</strong> {{ producto.categoria.material }}</li>
+          <li><i data-lucide="tag" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Tipo:</strong> {{ producto.categoria.tipo }}</li>
+          <li><i data-lucide="users" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Género:</strong> {{ producto.categoria.genero }}</li>
+        </ul>
+      </div>
+
+      {# Botón de Agregar al Carrito #}
+      <div class="mt-8">
+        <button class="btn-animado add-to-cart w-3/4 mx-auto py-2 px-5 font-bold rounded-lg
+               custom-bg-primary custom-text-primary-foreground
+               hover:bg-primary/90 hover:text-white transition-colors"
+                data-watch-id="{{ producto.id }}"
+                data-watch-name="{{ producto.nombre }}"
+                data-watch-brand="{{ producto.marca.nombre }}"
+                data-watch-price="{{ producto.precio }}"
+                data-watch-image="{% get_static_prefix %}img/{{ producto.imgproducto.url }}">
+          Agregar al Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {# Sección de Reseñas #}
+  <div class="border-t border-gray-200 mt-16 pt-10">
+    <h2 class="text-2xl font-bold mb-6 custom-text-foreground">Reseñas de Clientes</h2>
+    <div class="space-y-6">
+      {% for reseña in reseñas %}
+        <div class="border-b border-gray-100 pb-4">
+          <div class="flex items-center mb-2">
+            <div class="flex items-center">
+              {% for i in "12345" %}
+                {% if forloop.counter <= reseña.calificacion %}
+                  <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
+                {% else %}
+                  <i data-lucide="star" class="w-5 h-5 text-gray-300"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <p class="ml-3 font-semibold custom-text-foreground">{{ reseña.usuario.nombre }}</p>
+          </div>
+          <p class="text-gray-600">{{ reseña.comentario }}</p>
+        </div>
+      {% empty %}
+        <p class="text-gray-500">Este producto aún no tiene reseñas. ¡Sé el primero!</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
