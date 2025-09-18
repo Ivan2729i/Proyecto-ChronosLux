@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.core.paginator import Paginator
+from .models import Producto, Categoria
 
 def build_home_context():
     featured_watches = [
@@ -99,22 +100,23 @@ def home(request):
     return render(request, 'home.html', build_home_context())
 
 def catalog(request):
-    ctx = build_home_context()
-    items = ctx['catalog_watches'][:]  # copia
+    # Consultar los relojes de la base de datos
+    items = Producto.objects.select_related('categoria', 'marca', 'imgproducto').all()
 
-    # ---- Filtros ----
+    # Filtros
     t = (request.GET.get('type') or '').lower()
     price = (request.GET.get('price') or '').lower()
     gender = (request.GET.get('gender') or '').lower()
 
+    # Funciones de filtro
     def match_type(x):
         if not t or t == 'all': return True
-        value = (x.get('type') or '').lower()
+        value = (x.categoria.tipo or '').lower()
         return value == t
 
     def match_price(x):
         if not price or price == 'all': return True
-        p = float(x.get('price') or 0)
+        p = float(x.precio)
         if price == 'up_to_5000': return p <= 5000
         if price == '5000_10000': return 5000 <= p <= 10000
         if price == 'over_10000': return p > 10000
@@ -122,25 +124,26 @@ def catalog(request):
 
     def match_gender(x):
         if not gender or gender == 'all': return True
-        return (x.get('gender') or '').lower() == gender
+        return (x.categoria.genero or '').lower() == gender
 
+    # Aplicar filtros
     items = [x for x in items if match_type(x) and match_price(x) and match_gender(x)]
 
-    # ---- Ordenamiento ----
+    # Ordenamiento
     sort = (request.GET.get('sort') or 'featured').lower()
     if sort == 'price_asc':
-        items.sort(key=lambda x: float(x.get('price') or 0))
+        items = sorted(items, key=lambda x: x.precio)
     elif sort == 'price_desc':
-        items.sort(key=lambda x: float(x.get('price') or 0), reverse=True)
-    elif sort == 'rating_desc':
-        items.sort(key=lambda x: float(x.get('rating') or 0), reverse=True)
+        items = sorted(items, key=lambda x: x.precio, reverse=True)
     elif sort == 'name_asc':
-        items.sort(key=lambda x: (x.get('name') or '').lower())
-    # 'featured' = sin cambios
+        items = sorted(items, key=lambda x: x.nombre)
 
-    # ---- Paginación ----
+    tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
+    generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
+
+    # Paginación
     page_number = request.GET.get('page') or 1
-    paginator = Paginator(items, 12)  # 12 por página
+    paginator = Paginator(items, 12)
     page_obj = paginator.get_page(page_number)
 
     return render(request, 'catalog.html', {
@@ -152,5 +155,7 @@ def catalog(request):
             'price': price or 'all',
             'gender': gender or 'all',
             'sort': sort or 'featured',
-        }
+        },
+        'tipos': tipos_disponibles,
+        'generos': generos_disponibles,
     })

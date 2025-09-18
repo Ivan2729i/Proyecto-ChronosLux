@@ -24,6 +24,8 @@ class Marca(models.Model):
 class Categoria(models.Model):
     genero = models.CharField(max_length=60)
     material = models.CharField(max_length=60)
+    tipo = models.CharField(max_length=60, choices=[('Deportivo', 'Deportivo'), ('Clasico', 'Clasico'),
+    ('Elegante', 'Elegante')], blank=True, null=True)
 
     def __str__(self):
         return f"{self.genero} - {self.material}"
@@ -41,7 +43,9 @@ class Proveedor(models.Model):
 class Producto(models.Model):
     nombre = models.CharField(max_length=60)
     precio = models.DecimalField(max_digits=12, decimal_places=2)
-    descripcion = models.CharField(max_length=140, blank=True, null=True)
+    descripcion1 = models.CharField(max_length=140, blank=True, null=True)
+    descripcion2 = models.CharField(max_length=140, blank=True, null=True)
+    descripcion3 = models.CharField(max_length=140, blank=True, null=True)
     stock = models.IntegerField(default=0)
     fecha_borrado = models.DateTimeField(blank=True, null=True)
     fecha_creacion = models.DateTimeField(blank=True, null=True)

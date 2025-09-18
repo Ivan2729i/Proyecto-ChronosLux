@@ -6,7 +6,7 @@
       <span class="font-medium">Filtros:</span>
     </div>
 
-    {# --- Categoría / Tipo --- #}
+    {# --- Categoría / Tipo (Dinámico con Estilo Original) --- #}
     <div class="dd relative">
       <button type="button"
               class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-gray-50"
@@ -22,35 +22,19 @@
           <span>Todas las categorías</span>
           {% if current.type == 'all' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
         </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
-                data-param="type" data-value="deportivo">
-          <span>Deportivo</span>
-          {% if current.type == 'deportivo' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
-                data-param="type" data-value="elegante">
-          <span>Elegante</span>
-          {% if current.type == 'elegante' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
-                data-param="type" data-value="clásico">
-          <span>Clásico</span>
-          {% if current.type == 'clásico' or current.type == 'clasico' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
-                data-param="type" data-value="inteligente">
-          <span>Inteligente</span>
-          {% if current.type == 'inteligente' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
-                data-param="type" data-value="exclusivo">
-          <span>Exclusivo</span>
-          {% if current.type == 'exclusivo' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
+        {% for tipo in tipos %}
+          {% if tipo %}
+            <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
+                    data-param="type" data-value="{{ tipo|lower }}">
+              <span>{{ tipo|title }}</span>
+              {% if current.type == tipo|lower %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
+            </button>
+          {% endif %}
+        {% endfor %}
       </div>
     </div>
 
-    {# --- Precio --- #}
+    {# --- Precio (Estático con Estilo Original) --- #}
     <div class="dd relative">
       <button type="button"
               class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-gray-50"
@@ -87,15 +71,13 @@
       </div>
     </div>
 
-    {# --- Género --- #}
+    {# --- Género (Dinámico con Estilo Original) --- #}
     <div class="dd relative">
       <button type="button"
               class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-gray-50"
               data-param="gender" aria-haspopup="true" aria-expanded="false">
         <span class="dd-label">
-          {% if current.gender == 'hombre' %}Hombre
-          {% elif current.gender == 'mujer' %}Mujer
-          {% else %}Género{% endif %}
+          {% if current.gender != 'all' %}{{ current.gender|title }}{% else %}Todos los géneros{% endif %}
         </span>
         <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
       </button>
@@ -105,20 +87,19 @@
           <span>Todos</span>
           {% if current.gender == 'all' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
         </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
-                data-param="gender" data-value="hombre">
-          <span>Hombre</span>
-          {% if current.gender == 'hombre' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
-                data-param="gender" data-value="mujer">
-          <span>Mujer</span>
-          {% if current.gender == 'mujer' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
+        {% for genero in generos %}
+          {% if genero %}
+            <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
+                    data-param="gender" data-value="{{ genero|lower }}">
+              <span>{{ genero|title }}</span>
+              {% if current.gender == genero|lower %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
+            </button>
+          {% endif %}
+        {% endfor %}
       </div>
     </div>
 
-    {# --- Orden --- #}
+    {# --- Orden (Estático con Estilo Original) --- #}
     <div class="dd relative">
       <button type="button"
               class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-gray-50"
@@ -126,7 +107,6 @@
         <span class="dd-label">
           {% if current.sort == 'price_asc' %}Precio: Menor a Mayor
           {% elif current.sort == 'price_desc' %}Precio: Mayor a Menor
-          {% elif current.sort == 'rating_desc' %}Mejor valorados
           {% elif current.sort == 'name_asc' %}Nombre A–Z
           {% else %}Destacados{% endif %}
         </span>
@@ -149,17 +129,11 @@
           {% if current.sort == 'price_desc' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
         </button>
         <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
-                data-param="sort" data-value="rating_desc">
-          <span>Mejor valorados</span>
-          {% if current.sort == 'rating_desc' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
-        </button>
-        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50"
                 data-param="sort" data-value="name_asc">
           <span>Nombre A–Z</span>
           {% if current.sort == 'name_asc' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
         </button>
       </div>
     </div>
-
   </div>
 </div>
