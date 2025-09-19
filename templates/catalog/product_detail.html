@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-12">
@@ -14,16 +15,15 @@
     <div>
       <span class="text-sm font-semibold custom-text-secondary uppercase">{{ producto.marca.nombre }}</span>
       <h1 class="text-4xl font-bold font-serif my-2 custom-text-foreground">{{ producto.nombre }}</h1>
-      <p class="text-3xl font-black custom-text-foreground mb-6">${{ producto.precio|floatformat:0 }}</p>
+      <p class="text-3xl font-black custom-text-foreground mb-6">${{ producto.precio|floatformat:0|intcomma }}</p>
 
       <div class="border-t border-gray-200 pt-6">
         <h3 class="text-lg font-semibold mb-3 custom-text-foreground">Especificaciones</h3>
-        <ul class="space-y-2 text-gray-700"> {# Color de texto ajustado #}
+        <ul class="space-y-2 text-gray-700">
           {% if producto.descripcion1 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion1 }}</li>{% endif %}
           {% if producto.descripcion2 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion2 }}</li>{% endif %}
           {% if producto.descripcion3 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion3 }}</li>{% endif %}
 
-          {# ✅ Eliminados los asteriscos y usada etiqueta <strong> #}
           <li><i data-lucide="package" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Material:</strong> {{ producto.categoria.material }}</li>
           <li><i data-lucide="tag" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Tipo:</strong> {{ producto.categoria.tipo }}</li>
           <li><i data-lucide="users" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Género:</strong> {{ producto.categoria.genero }}</li>
