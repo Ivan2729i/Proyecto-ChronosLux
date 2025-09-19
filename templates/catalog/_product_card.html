@@ -1,6 +1,7 @@
 {# templates/catalog/_product_card.html #}
 
 {% load static %}
+{% load humanize %}
 
 <a href="{% url 'product_detail' producto_id=watch.id %}" class="block">
   <div class="watch-item group flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
@@ -59,7 +60,7 @@
       <div class="flex items-end justify-between mt-auto pt-2">
         <div class="flex items-baseline gap-2">
           <span class="font-serif font-black text-xl custom-text-foreground">
-            ${{ watch.precio|floatformat:0 }}
+            ${{ watch.precio|floatformat:0|intcomma }}
           </span>
         </div>
 
