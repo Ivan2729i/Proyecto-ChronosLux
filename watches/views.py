@@ -1,8 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+import os
+import uuid
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Producto, Categoria, Resena
+from .models import Producto, Categoria, Resena, ImgProducto
 from django.http import JsonResponse
 import json
+from .forms import ProductoForm
 
 def build_home_context():
     featured_watches = [
@@ -288,3 +291,115 @@ def get_cart_data(request):
         'total_price': total_price,
         'total_items': total_items,
     })
+
+def admin_dashboard(request):
+    productos = Producto.objects.select_related('marca').all()
+
+    context = {
+        'productos': productos
+    }
+    return render(request, 'admin/dashboard.html', context)
+
+
+def crear_producto(request):
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            # --- Lógica para buscar o crear la Categoría ---
+            categoria_obj, created = Categoria.objects.get_or_create(
+                genero=form.cleaned_data.get('genero'),
+                material=form.cleaned_data.get('material'),
+                tipo=form.cleaned_data.get('tipo')
+            )
+
+            # Guardamos el producto sin commit para asignarle la categoría
+            producto = form.save(commit=False)
+            producto.categoria = categoria_obj
+            producto.save()
+
+            # --- Lógica para guardar la imagen ---
+            uploaded_image = form.cleaned_data.get('imagen')
+            if uploaded_image:
+                extension = os.path.splitext(uploaded_image.name)[1]
+                nombre_unico = f"{uuid.uuid4()}{extension}"
+                uploaded_image.name = nombre_unico
+
+                # Como el 'producto' ya está guardado, esta línea ahora funcionará
+                ImgProducto.objects.create(producto=producto, url=uploaded_image)
+
+            return redirect('admin_dashboard')
+    else:
+        form = ProductoForm()
+
+    context = {'form': form}
+    return render(request, 'admin/producto_form.html', context)
+
+
+def editar_producto(request, producto_id):
+    # Buscamos el producto que se va a editar, o mostramos un error 404 si no existe
+    producto = get_object_or_404(Producto, pk=producto_id)
+
+    if request.method == 'POST':
+        # Si el formulario se envía, lo procesamos con los datos nuevos y el producto existente
+        form = ProductoForm(request.POST, request.FILES, instance=producto)
+        if form.is_valid():
+            # (La lógica de la categoría y la imagen la moveremos aquí también)
+            categoria_obj, created = Categoria.objects.get_or_create(
+                genero=form.cleaned_data.get('genero'),
+                material=form.cleaned_data.get('material'),
+                tipo=form.cleaned_data.get('tipo')
+            )
+
+            edited_producto = form.save(commit=False)
+            edited_producto.categoria = categoria_obj
+            edited_producto.save()
+
+            # Lógica para la imagen (si se sube una nueva)
+            uploaded_image = form.cleaned_data.get('imagen')
+            if uploaded_image:
+                if producto.imgproducto:
+                    producto.imgproducto.delete()
+
+                extension = os.path.splitext(uploaded_image.name)[1]
+                nombre_unico = f"{uuid.uuid4()}{extension}"
+                uploaded_image.name = nombre_unico
+
+                # Actualiza o crea la ImgProducto
+                ImgProducto.objects.update_or_create(
+                    producto=edited_producto,
+                    defaults={'url': uploaded_image}
+                )
+
+            return redirect('admin_dashboard')
+    else:
+        # Si se accede por primera vez, mostramos el formulario relleno con los datos del producto
+        form = ProductoForm(instance=producto, initial={
+            'genero': producto.categoria.genero,
+            'material': producto.categoria.material,
+            'tipo': producto.categoria.tipo,
+        })
+
+    context = {
+        'form': form
+    }
+    return render(request, 'admin/producto_form.html', context)
+
+
+def eliminar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, pk=producto_id)
+
+    if request.method == 'POST':
+        # 1. Verificamos si el producto tiene una imagen asociada para evitar errores.
+        if hasattr(producto, 'imgproducto'):
+            # 2. Borramos el archivo de imagen del disco.
+            producto.imgproducto.url.delete(save=False)
+
+        # 3. Borramos el producto (y el ImgProducto asociado) de la base de datos.
+        producto.delete()
+
+        return redirect('admin_dashboard')
+
+    context = {
+        'producto': producto
+    }
+    return render(request, 'admin/eliminar_producto.html', context)
