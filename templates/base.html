@@ -35,6 +35,9 @@
                     <a href="#catalog" class="nav-link font-medium">Catálogo</a>
                     <a href="#exclusive" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% endif %}
                 </nav>
 
                 <div class="flex items-center space-x-4">
@@ -67,6 +70,9 @@
                     <a href="#catalog" class="nav-link font-medium">Catálogo</a>
                     <a href="#exclusive" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% endif %}
                     <div class="flex items-center space-x-2 pt-2">
                         <input type="text" placeholder="Buscar relojes..." class="flex-1 px-3 py-2 rounded-md bg-white text-gray-900">
                         <button class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
@@ -113,6 +119,11 @@
                         <li><a href="#catalog" class="hover:text-secondary transition-colors">Catálogo</a></li>
                         <li><a href="#exclusive" class="hover:text-secondary transition-colors">Exclusivos</a></li>
                         <li><a href="#contact" class="hover:text-secondary transition-colors">Contacto</a></li>
+                        {% if user.is_authenticated and user.is_staff %}
+                        <li class="nav-item">
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div>

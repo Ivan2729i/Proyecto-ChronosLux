@@ -25,7 +25,7 @@ class Categoria(models.Model):
     genero = models.CharField(max_length=60)
     material = models.CharField(max_length=60)
     tipo = models.CharField(max_length=60, choices=[('Deportivo', 'Deportivo'), ('Clasico', 'Clasico'),
-    ('Elegante', 'Elegante')], blank=True, null=True)
+    ('Elegante', 'Elegante'), ('Vintage', 'Vintage')], blank=True, null=True)
 
     def __str__(self):
         return f"{self.genero} - {self.material}"
@@ -58,7 +58,7 @@ class Producto(models.Model):
 
 
 class ImgProducto(models.Model):
-    url = models.CharField(max_length=255)
+    url = models.ImageField(upload_to='watches/')
     fecha_creacion = models.DateTimeField(blank=True, null=True)
     producto = models.OneToOneField(Producto, on_delete=models.CASCADE)
 
