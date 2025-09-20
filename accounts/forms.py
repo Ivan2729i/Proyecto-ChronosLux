@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import re
 
@@ -173,17 +174,17 @@ class SignupForm(UserCreationForm):
     def clean_password2(self):
         return (self.cleaned_data.get("password2") or "")
 
-    # Comparamos nosotros y ponemos el mensaje SOLO en password1
     def clean(self):
-        cleaned = forms.ModelForm.clean(self)  # no llamamos al clean de UserCreationForm
-        p1 = cleaned.get("password1")
-        p2 = cleaned.get("password2")
-        if not p1 or not p2:
-            self.add_error("password1", "Debes ingresar y repetir la contraseña.")
-            return cleaned
-        if p1 != p2:
-            self.add_error("password1", "Las contraseñas no coinciden.")
-        return cleaned
+        cleaned_data = super().clean()
+        password_1 = cleaned_data.get("password1")
+
+        if password_1:
+            try:
+                validate_password(password_1, self.instance)
+            except forms.ValidationError as error:
+                self.add_error('password1', error.messages)
+
+        return cleaned_data
 
     def save(self, commit=True):
         # Saltamos save de UserCreationForm para no reactivar validaciones por defecto
