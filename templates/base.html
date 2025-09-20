@@ -257,7 +257,7 @@
                     <div class="form-field {% if field.errors %}has-error{% endif %}">
                       <label class="block text-sm font-medium mb-1">{{ field.label }}</label>
                       {{ field }}
-                      {% if field.errors and field.name != 'password2' %}
+                      {% if field.errors %}
                         {# Ocultamos cualquier error en password2, por si llegara #}
                         <p class="text-sm text-red-600 mt-1">{{ field.errors|join:", " }}</p>
                       {% endif %}
