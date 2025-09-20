@@ -182,68 +182,49 @@ def product_detail(request, producto_id):
     return render(request, 'catalog/product_detail.html', context)
 
 
-# --- VISTAS PARA LA API DEL CARRITO ---
+# --- INICIO: LÓGICA COMPLETA DEL CARRITO ---
 
 def add_to_cart(request, producto_id):
-    # Agrega un producto al carrito en la sesión. Si ya existe, incrementa la cantidad.
-    # Obtenemos el producto desde la base de datos para asegurar que existe y tener el precio real.
+    """ Agrega un producto al carrito en la sesión o incrementa su cantidad. """
     producto = get_object_or_404(Producto, pk=producto_id)
-
-    # Obtenemos el carrito de la sesión. Si no existe, es un diccionario vacío.
     cart = request.session.get('cart', {})
     pid_str = str(producto.id)
 
     if pid_str in cart:
-        # Si el reloj ya está en el carrito, solo aumentamos su cantidad.
         cart[pid_str]['quantity'] += 1
     else:
-        # Si es la primera vez que se agrega, guardamos sus datos.
         cart[pid_str] = {
             'quantity': 1,
-            'price': str(producto.precio),  # Guardamos el precio como string
+            'price': str(producto.precio),
             'name': producto.nombre,
-            'image_url': producto.imgproducto.url,
+            'image_url': producto.imgproducto.url.name,
             'brand': producto.marca.nombre
         }
 
-    # Guardamos el carrito modificado de vuelta en la sesión.
     request.session['cart'] = cart
-
-    # Calculamos el total de items para actualizar el ícono del carrito en el frontend.
     total_items = sum(item['quantity'] for item in cart.values())
-
     return JsonResponse({'status': 'ok', 'total_items': total_items})
 
 
 def remove_from_cart(request, producto_id):
-    """
-    Elimina un producto completo del carrito.
-    """
+    """ Elimina un producto completo del carrito. """
     cart = request.session.get('cart', {})
     pid_str = str(producto_id)
 
     if pid_str in cart:
-        # Si el producto existe en el carrito, lo eliminamos.
         del cart[pid_str]
 
-    # Guardamos el carrito modificado.
     request.session['cart'] = cart
-    total_items = sum(item['quantity'] for item in cart.values())
-
-    return JsonResponse({'status': 'ok', 'total_items': total_items})
+    return JsonResponse({'status': 'ok'})
 
 
 def update_cart_quantity(request, producto_id):
-    """
-    Actualiza la cantidad de un producto (incrementa o decrementa).
-    Si la cantidad llega a cero, elimina el producto.
-    """
+    """ Actualiza la cantidad de un producto (+/-). """
     if request.method == 'POST':
         cart = request.session.get('cart', {})
         pid_str = str(producto_id)
 
         if pid_str in cart:
-            # Leemos la acción ('increase' o 'decrease') del cuerpo de la petición.
             data = json.loads(request.body)
             action = data.get('action')
 
@@ -251,46 +232,44 @@ def update_cart_quantity(request, producto_id):
                 cart[pid_str]['quantity'] += 1
             elif action == 'decrease':
                 cart[pid_str]['quantity'] -= 1
-                # Si la cantidad es 0 o menos, eliminamos el item del carrito.
                 if cart[pid_str]['quantity'] <= 0:
                     del cart[pid_str]
 
-            # Guardamos el carrito modificado.
             request.session['cart'] = cart
-            total_items = sum(item['quantity'] for item in cart.values())
+            return JsonResponse({'status': 'ok'})
 
-            return JsonResponse({'status': 'ok', 'total_items': total_items})
+    return JsonResponse({'status': 'error'}, status=400)
 
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 def get_cart_data(request):
-    """
-    Una vista de API que devuelve los datos del carrito en la sesión como JSON.
-    """
+    """ Devuelve los datos completos del carrito para que JavaScript los pueda mostrar. """
     cart = request.session.get('cart', {})
-    items = []
+    items_in_cart = []
     total_price = 0
     total_items = 0
 
-    for pid, item_data in cart.items():
-        subtotal = item_data['quantity'] * float(item_data['price'])
-        items.append({
+    for pid, item in cart.items():
+        subtotal = item['quantity'] * float(item['price'])
+        items_in_cart.append({
             'id': pid,
-            'name': item_data['name'],
-            'brand': item_data.get('brand', ''), # Usamos .get para seguridad
-            'quantity': item_data['quantity'],
-            'price': float(item_data['price']),
-            'image_url': item_data['image_url'],
+            'name': item['name'],
+            'brand': item.get('brand', ''),
+            'quantity': item['quantity'],
+            'price': float(item['price']),
+            'image_url': item['image_url'],
             'subtotal': subtotal
         })
         total_price += subtotal
-        total_items += item_data['quantity']
+        total_items += item['quantity']
 
     return JsonResponse({
-        'cart_items': items,
+        'cart_items': items_in_cart,
         'total_price': total_price,
         'total_items': total_items,
     })
+
+# --- FIN: LÓGICA COMPLETA DEL CARRITO ---
+
 
 def admin_dashboard(request):
     productos = Producto.objects.select_related('marca').all()

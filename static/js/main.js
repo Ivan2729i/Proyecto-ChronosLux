@@ -44,9 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 
-    // --- INICIO DE LA NUEVA LÓGICA DEL CARRITO (JS + DJANGO) ---
+    // --- INICIO: BLOQUE DE CÓDIGO COMPLETO PARA EL CARRITO ---
 
-    // Función para obtener el token CSRF (esencial para la seguridad de Django)
+    // Función para obtener el token CSRF de Django
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -63,132 +63,114 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const csrftoken = getCookie('csrftoken');
 
-    // Funcionalidad del MODAL del carrito
-    document.getElementById('cart-btn').addEventListener('click', function() {
-        document.getElementById('cart-modal').classList.remove('hidden');
-        renderCartModal(); // Al abrir el modal, lo renderizamos con datos frescos del servidor.
-    });
-
-    document.getElementById('close-cart').addEventListener('click', function() {
-        document.getElementById('cart-modal').classList.add('hidden');
-    });
-
-    /**
-     * Pide los datos del carrito a Django y actualiza el HTML del modal.
-     */
-    async function renderCartModal() {
-        const response = await fetch('/api/carrito/');
-        const data = await response.json();
-
-        const cartItemsContainer = document.getElementById('cart-items');
-        const cartTotalEl = document.getElementById('cart-total');
-        const checkoutBtn = document.getElementById('checkout-btn');
-
-        cartItemsContainer.innerHTML = ''; // Limpiamos el contenido anterior
-
-        if (data.cart_items.length === 0) {
-            cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center">Tu carrito está vacío</p>';
-            checkoutBtn.disabled = true;
-            checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    // Función para actualizar el ícono del contador en el navbar
+    function updateCartIcon(total_items) {
+        const cartCount = document.getElementById('cart-count');
+        if (!cartCount) return;
+        if (total_items > 0) {
+            cartCount.textContent = total_items;
+            cartCount.classList.remove('hidden');
         } else {
-            data.cart_items.forEach(item => {
-                const itemHTML = `
-                    <div class="flex items-center space-x-4 mb-4 p-4 border rounded-lg">
-                        <img src="/static/img/${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
-                        <div class="flex-1">
-                            <h3 class="font-semibold">${item.brand} ${item.name}</h3>
-                            <p class="text-gray-600">$${item.price.toFixed(2)}</p>
-                            <div class="flex items-center space-x-2 mt-2">
-                                <button class="quantity-btn border px-2 rounded" data-id="${item.id}" data-action="decrease">-</button>
-                                <span>${item.quantity}</span>
-                                <button class="quantity-btn border px-2 rounded" data-id="${item.id}" data-action="increase">+</button>
-                                <button class="remove-btn ml-auto text-red-500 hover:text-red-700 font-semibold" data-id="${item.id}">Eliminar</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                cartItemsContainer.innerHTML += itemHTML;
-            });
-            checkoutBtn.disabled = false;
-            checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            cartCount.textContent = '0';
+            cartCount.classList.add('hidden');
         }
-
-        cartTotalEl.textContent = `$${data.total_price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        updateCartIcon(data.total_items);
     }
 
-    /**
-     * Escuchador de eventos principal para todas las acciones del carrito
-     */
+    // Función para pedir los datos del carrito a Django y dibujar el modal
+    async function renderCartModal() {
+        try {
+            const response = await fetch('/api/carrito/');
+            const data = await response.json();
+
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartTotalEl = document.getElementById('cart-total');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            if (!cartItemsContainer || !cartTotalEl || !checkoutBtn) return;
+
+            cartItemsContainer.innerHTML = ''; // Limpiamos el contenido
+
+            if (data.cart_items.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center">Tu carrito está vacío</p>';
+                checkoutBtn.disabled = true;
+                checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                data.cart_items.forEach(item => {
+                    const imageUrl = `/media/watches/${item.image_url}`;
+                    const itemHTML = `
+                        <div class="flex items-center space-x-4 mb-4 p-4 border rounded-lg">
+                            <img src="${imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                            <div class="flex-1">
+                                <h3 class="font-semibold">${item.brand} ${item.name}</h3>
+                                <p class="text-gray-600">$${item.price.toFixed(2)}</p>
+                                <div class="flex items-center space-x-2 mt-2">
+                                    <button class="quantity-btn border px-2 rounded" data-id="${item.id}" data-action="decrease">-</button>
+                                    <span>${item.quantity}</span>
+                                    <button class="quantity-btn border px-2 rounded" data-id="${item.id}" data-action="increase">+</button>
+                                    <button class="remove-btn ml-auto text-red-500 hover:text-red-700 font-semibold" data-id="${item.id}">Eliminar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    cartItemsContainer.innerHTML += itemHTML;
+                });
+                checkoutBtn.disabled = false;
+                checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            cartTotalEl.textContent = `$${data.total_price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            updateCartIcon(data.total_items);
+        } catch (error) {
+            console.error("Error al renderizar el carrito:", error);
+        }
+    }
+
+    // Event listener unificado para todas las acciones
     document.body.addEventListener('click', async function(event) {
         const button = event.target.closest('button');
+
+        // Abrir/cerrar modal del carrito
+        if (event.target.closest('#cart-btn')) {
+            document.getElementById('cart-modal')?.classList.remove('hidden');
+            renderCartModal();
+        }
+        if (event.target.closest('#close-cart')) {
+            document.getElementById('cart-modal')?.classList.add('hidden');
+        }
+
+        // Si no fue un botón, no hacemos más
         if (!button) return;
 
         let url;
         let watchId;
-        const headers = { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' };
 
-        // --- AGREGAR AL CARRITO ---
+        // Acciones del carrito
         if (button.matches('.add-to-cart')) {
             event.preventDefault();
             watchId = button.dataset.watchId;
             url = `/carrito/agregar/${watchId}/`;
-
-            const response = await fetch(url, { method: 'POST', headers: headers });
+            const response = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
             const data = await response.json();
-
-            if (data.status === 'ok') {
-                updateCartIcon(data.total_items);
-            }
+            if (data.status === 'ok') updateCartIcon(data.total_items);
         }
-
-        // --- ELIMINAR DEL CARRITO ---
         if (button.matches('.remove-btn')) {
             watchId = button.dataset.id;
             url = `/carrito/eliminar/${watchId}/`;
-
-            const response = await fetch(url, { method: 'POST', headers: headers });
-            const data = await response.json();
-
-            if (data.status === 'ok') {
-                renderCartModal(); // Re-renderiza el modal con los datos actualizados
-            }
+            const response = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
+            if ((await response.json()).status === 'ok') renderCartModal();
         }
-
-        // --- ACTUALIZAR CANTIDAD ---
         if (button.matches('.quantity-btn')) {
             watchId = button.dataset.id;
             const action = button.dataset.action;
             url = `/carrito/actualizar/${watchId}/`;
-
             const response = await fetch(url, {
                 method: 'POST',
-                headers: headers,
+                headers: { 'X-CSRFToken': csrftoken, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: action })
             });
-            const data = await response.json();
-
-            if (data.status === 'ok') {
-                renderCartModal(); // Re-renderiza el modal
-            }
+            if ((await response.json()).status === 'ok') renderCartModal();
         }
     });
 
-
-     // Función auxiliar para actualizar solo el ícono del contador en el navbar.
-
-    function updateCartIcon(total_items) {
-        const cartCount = document.getElementById('cart-count');
-        if (cartCount) {
-             if (total_items > 0) {
-                cartCount.textContent = total_items;
-                cartCount.classList.remove('hidden');
-            } else {
-                cartCount.classList.add('hidden');
-            }
-        }
-    }
-
+    // --- FIN: BLOQUE DE CÓDIGO COMPLETO PARA EL CARRITO ---
 
 
     // --- LÓGICA DEL MODAL DE USUARIO ---
