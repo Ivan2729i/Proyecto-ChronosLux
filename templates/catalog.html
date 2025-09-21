@@ -5,9 +5,13 @@
   <div class="container mx-auto px-4">
 
     <div class="text-center mb-10">
-      <h1 class="font-serif font-black text-4xl md:text-5xl custom-text-foreground mb-4">
-                    Catálogo <span class="custom-text-secondary">Completo</span>
-      </h1>
+      {% if search_query %}
+        <h1 class="text-3xl font-bold text-center">Resultados para "{{ search_query }}"</h1>
+      {% else %}
+        <h1 class="font-serif font-black text-4xl md:text-5xl custom-text-foreground mb-4">
+              Catálogo <span class="custom-text-secondary">Completo</span>
+        </h1>
+      {% endif %}
       <p class="text-xl custom-text-muted-foreground max-w-3xl mx-auto">
         Explora nuestra colección completa de relojes de lujo y encuentra el timepiece perfecto
       </p>

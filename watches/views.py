@@ -6,6 +6,7 @@ from .models import Producto, Categoria, Resena, ImgProducto, Marca
 from django.http import JsonResponse
 import json
 from .forms import ProductoForm
+from django.db.models import Q
 
 def build_home_context():
     featured_watches = [
@@ -109,6 +110,17 @@ def home(request):
 def catalog(request):
     items = Producto.objects.select_related('categoria', 'marca', 'imgproducto').filter(es_exclusivo=False)
 
+    # Barra de busqueda
+    query = request.GET.get('q')
+    if query:
+        items = items.filter(
+            Q(nombre__icontains=query) |
+            Q(marca__nombre__icontains=query) |
+            Q(descripcion1__icontains=query) |
+            Q(descripcion2__icontains=query) |
+            Q(descripcion3__icontains=query)
+        )
+
     # Filtros
     t = (request.GET.get('type') or '').lower()
     price = (request.GET.get('price') or '').lower()
@@ -162,6 +174,7 @@ def catalog(request):
         'page_obj': page_obj,
         'catalog_watches': page_obj.object_list,
         'querystring': request.GET.urlencode(),
+        'search_query': query,
         'current': {
             'type': t or 'all',
             'price': price or 'all',

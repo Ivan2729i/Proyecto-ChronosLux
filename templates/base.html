@@ -41,13 +41,18 @@
                 </nav>
 
                 <div class="flex items-center space-x-4">
-                    <div class="hidden md:flex items-center space-x-2">
-                        <input type="text" placeholder="Buscar relojes..." class="w-64 px-3 py-2 rounded-md bg-white text-gray-900">
-                        <button class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                        title="Buscar">
-                            <i data-lucide="search" class="w-4 h-4"></i>
-                        </button>
-                    </div>
+                    <form action="{% url 'catalog' %}" method="get" class="hidden md:flex items-center space-x-2">
+                      <input type="search"
+                             name="q"
+                             value="{{ search_query|default:'' }}"
+                             placeholder="Buscar relojes..."
+                             class="w-64 px-3 py-2 rounded-md bg-white text-gray-900">
+                      <button type="submit"
+                              class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
+                              title="Buscar">
+                          <i data-lucide="search" class="w-4 h-4"></i>
+                      </button>
+                    </form>
 
                     <button id="user-icon-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Usuario">
                         <i data-lucide="user" class="w-5 h-5"></i>
