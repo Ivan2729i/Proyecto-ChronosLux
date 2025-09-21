@@ -1,0 +1,65 @@
+{% load static %}
+{% load humanize %}
+
+<a href="{% url 'product_detail' producto_id=watch.id %}" class="block group h-full">
+
+  <div class="bg-white/10 backdrop-blur-md border border-white/20
+              rounded-xl shadow-lg overflow-hidden
+              transition-all duration-300 hover:shadow-yellow-400/30 hover:-translate-y-1
+              h-full flex flex-col">
+
+    <div class="relative">
+      <img src="{{ watch.imgproducto.url.url }}"
+           alt="{{ watch.marca.nombre }} {{ watch.nombre }}"
+           class="w-full h-72 object-cover">
+
+      <span class="absolute top-4 left-4 bg-yellow-500 text-black text-xs font-bold
+                   px-3 py-1 rounded-full shadow-md">Exclusivo</span>
+
+      <button type="button"
+              class="fav-toggle absolute top-4 right-4 grid place-items-center w-9 h-9 rounded-full bg-gray-900/50 backdrop-blur-sm text-white hover:bg-gray-800/60 transition-colors"
+              aria-label="Agregar a favoritos"
+              data-watch-id="{{ watch.id }}">
+        <i data-lucide="heart" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="p-6 flex flex-col flex-grow">
+      <span class="text-xs text-yellow-400 uppercase tracking-wide">{{ watch.marca.nombre }}</span>
+      <h3 class="text-lg font-bold text-white mt-1 mb-3">{{ watch.nombre }}</h3>
+
+      <ul class="text-sm text-gray-200 space-y-2 mb-4 flex-grow">
+        {% if watch.descripcion1 %}
+          <li class="flex items-start">
+            <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+            <span>{{ watch.descripcion1 }}</span>
+          </li>
+        {% endif %}
+        {% if watch.descripcion2 %}
+          <li class="flex items-start">
+            <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+            <span>{{ watch.descripcion2 }}</span>
+          </li>
+        {% endif %}
+        {% if watch.descripcion3 %}
+          <li class="flex items-start">
+            <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+            <span>{{ watch.descripcion3 }}</span>
+          </li>
+        {% endif %}
+      </ul>
+
+      <div class="flex justify-between items-center mt-auto pt-4 border-t border-white/10">
+        <p class="text-2xl font-extrabold text-yellow-400">${{ watch.precio|floatformat:0|intcomma }}</p>
+        <button class="btn-animado add-to-cart text-sm font-semibold py-2 px-4 rounded-md"
+                data-watch-id="{{ watch.id }}"
+                data-watch-name="{{ watch.nombre }}"
+                data-watch-brand="{{ watch.marca.nombre }}"
+                data-watch-price="{{ watch.precio }}"
+                data-watch-image="{{ watch.imgproducto.url.name }}">
+            Agregar al Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</a>

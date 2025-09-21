@@ -42,6 +42,7 @@ class ProductoForm(forms.ModelForm):
             'precio',
             'stock',
             'marca',
+            'es_exclusivo',
             'descripcion1',
             'descripcion2',
             'descripcion3',
@@ -51,6 +52,10 @@ class ProductoForm(forms.ModelForm):
             'precio': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
             'stock': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
             'marca': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'es_exclusivo': forms.Select(
+                choices=[(False, 'No'), (True, 'Sí')],
+                attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}
+            ),
             'descripcion1': forms.Textarea(
                 attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md', 'rows': 3}),
             'descripcion2': forms.Textarea(

@@ -1,0 +1,134 @@
+{% load static %}
+
+<div class="mb-8">
+  <div class="mx-auto max-w-6xl bg-black/20 backdrop-blur-md border border-white/20 rounded-xl p-3 flex flex-wrap items-center justify-center gap-2 shadow-lg">
+    <div class="flex items-center gap-2 text-gray-200 mr-2">
+      <i data-lucide="filter" class="w-5 h-5"></i>
+      <span class="font-medium">Filtros:</span>
+    </div>
+
+    {# --- Tipo de Reloj --- #}
+    <div class="dd relative">
+      <button type="button" class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10 text-gray-200 hover:bg-white/20 shadow-sm" data-param="type">
+        <span class="dd-label">{% if current.type != 'all' %}{{ current.type|title }}{% else %}Todos los tipos{% endif %}</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-50 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-left text-white" data-param="type" data-value="all">
+          <span>Todos los tipos</span>
+          {% if current.type == 'all' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% for tipo in tipos %}{% if tipo %}
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-left text-white" data-param="type" data-value="{{ tipo|lower }}">
+          <span>{{ tipo|title }}</span>
+          {% if current.type == tipo|lower %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+
+    {# --- Precio --- #}
+    <div class="dd relative">
+      <button type="button" class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10 text-gray-200 hover:bg-white/20 shadow-sm" data-param="price">
+        <span class="dd-label">
+          {% if current.price == 'up_to_60000' %}Hasta $60,000
+          {% elif current.price == '60000_100000' %}$60,000 - $100,000
+          {% elif current.price == 'over_100000' %}Más de $100,000
+          {% else %}Todos los precios{% endif %}
+        </span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-50 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="price" data-value="all">
+          <span>Todos los precios</span>
+          {% if current.price == 'all' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="price" data-value="up_to_60000">
+          <span>Hasta $60,000</span>
+          {% if current.price == 'up_to_60000' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="price" data-value="60000_100000">
+          <span>$60,000 - $100,000</span>
+          {% if current.price == '60000_100000' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="price" data-value="over_100000">
+          <span>Más de $100,000</span>
+          {% if current.price == 'over_100000' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+      </div>
+    </div>
+
+    {# --- Género --- #}
+    <div class="dd relative">
+      <button type="button" class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10 text-gray-200 hover:bg-white/20 shadow-sm" data-param="gender">
+        <span class="dd-label">{% if current.gender != 'all' %}{{ current.gender|title }}{% else %}Todos los géneros{% endif %}</span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-50 mt-2 w-44 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="gender" data-value="all">
+          <span>Todos</span>
+          {% if current.gender == 'all' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% for genero in generos %}{% if genero %}
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="gender" data-value="{{ genero|lower }}">
+          <span>{{ genero|title }}</span>
+          {% if current.gender == genero|lower %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+
+    {# --- Orden --- #}
+    <div class="dd relative">
+      <button type="button" class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10 text-gray-200 hover:bg-white/20 shadow-sm" data-param="sort">
+        <span class="dd-label">
+          {% if current.sort == 'price_asc' %}Precio: Menor a Mayor
+          {% elif current.sort == 'price_desc' %}Precio: Mayor a Menor
+          {% elif current.sort == 'name_asc' %}Nombre A–Z
+          {% else %}Destacados{% endif %}
+        </span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-50 mt-2 w-60 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="sort" data-value="featured">
+          <span>Destacados</span>
+          {% if current.sort == 'featured' or not current.sort %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="sort" data-value="price_asc">
+          <span>Precio: Menor a Mayor</span>
+          {% if current.sort == 'price_asc' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="sort" data-value="price_desc">
+          <span>Precio: Mayor a Menor</span>
+          {% if current.sort == 'price_desc' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-white" data-param="sort" data-value="name_asc">
+          <span>Nombre A–Z</span>
+          {% if current.sort == 'name_asc' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+      </div>
+    </div>
+
+    <div class="dd relative">
+      <button type="button" class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/20 bg-white/10 text-gray-200 hover:bg-white/20 shadow-sm" data-param="brand">
+        <span class="dd-label">
+          {% if current.brand != 'all' %}{{ current.brand|title }}{% else %}Todas las marcas{% endif %}
+        </span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-50 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-left text-white" data-param="brand" data-value="all">
+          <span>Todas las marcas</span>
+          {% if current.brand == 'all' %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% for marca in marcas %}
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-800 text-left text-white" data-param="brand" data-value="{{ marca.nombre|lower }}">
+          <span>{{ marca.nombre }}</span>
+          {% if current.brand == marca.nombre|lower %}<i data-lucide="check" class="w-4 h-4 text-yellow-400"></i>{% endif %}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>

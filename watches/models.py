@@ -47,6 +47,7 @@ class Producto(models.Model):
     descripcion2 = models.CharField(max_length=140, blank=True, null=True)
     descripcion3 = models.CharField(max_length=140, blank=True, null=True)
     stock = models.IntegerField(default=0)
+    es_exclusivo = models.BooleanField(default=False)
     fecha_borrado = models.DateTimeField(blank=True, null=True)
     fecha_creacion = models.DateTimeField(blank=True, null=True)
     fecha_actualizacion = models.DateTimeField(blank=True, null=True)
