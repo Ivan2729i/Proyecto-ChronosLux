@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="custom-bg-primary text-white py-12">
+  <div class="container mx-auto px-4">
+
+    <div class="text-center mb-10">
+      <h1 class="font-serif font-black text-4xl md:text-5xl mb-4">
+          <span class="text-white">Colección</span> <span class="custom-text-secondary">Exclusiva</span>
+      </h1>
+      <p class="text-lg text-gray-300">Piezas únicas para verdaderos conocedores.</p>
+    </div>
+
+    <div class="mb-8 relative z-20">
+      {% include 'catalog/_exclusive_filters_bar.html' %}
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      {% for watch in productos_exclusivos %}
+        {% include 'catalog/_exclusive_product_card.html' with watch=watch %}
+      {% empty %}
+        <p class="col-span-full text-center text-gray-400 text-lg">
+          Próximamente nuevos relojes exclusivos.
+        </p>
+      {% endfor %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

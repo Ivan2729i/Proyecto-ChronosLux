@@ -2,7 +2,7 @@ import os
 import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Producto, Categoria, Resena, ImgProducto
+from .models import Producto, Categoria, Resena, ImgProducto, Marca
 from django.http import JsonResponse
 import json
 from .forms import ProductoForm
@@ -166,20 +166,22 @@ def catalog(request):
     })
 
 def product_detail(request, producto_id):
-    # Usamos get_object_or_404 para obtener el producto o mostrar un error 404 si no existe
     producto = get_object_or_404(
         Producto.objects.select_related('categoria', 'marca', 'imgproducto'),
         pk=producto_id
     )
-
-    # Obtenemos todas las reseñas asociadas a este producto
     reseñas = Resena.objects.filter(producto=producto).order_by('-fecha')
+
+    if producto.es_exclusivo:
+        template_name = 'catalog/exclusive_product_detail.html'
+    else:
+        template_name = 'catalog/product_detail.html'
 
     context = {
         'producto': producto,
         'reseñas': reseñas,
     }
-    return render(request, 'catalog/product_detail.html', context)
+    return render(request, template_name, context)
 
 
 # --- INICIO: LÓGICA COMPLETA DEL CARRITO ---
@@ -270,6 +272,7 @@ def get_cart_data(request):
 
 # --- FIN: LÓGICA COMPLETA DEL CARRITO ---
 
+# --- INICIO: LÓGICA COMPLETA DE ADMIN ---
 
 def admin_dashboard(request):
     productos = Producto.objects.select_related('marca').all()
@@ -382,3 +385,68 @@ def eliminar_producto(request, producto_id):
         'producto': producto
     }
     return render(request, 'admin/eliminar_producto.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE ADMIN ---
+
+# --- INICIO: LÓGICA COMPLETA DE FILTROS EXCLUSIVE ---
+def exclusivos_catalog(request):
+    # 1. Obtenemos solo los productos marcados como exclusivos
+    items = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(es_exclusivo=True)
+
+    # 2. Obtenemos los parámetros de filtro de la URL
+    tipo_filtro = request.GET.get('type', '').lower()
+    precio_filtro = request.GET.get('price', '').lower()
+    genero_filtro = request.GET.get('gender', '').lower()
+    sort_order = request.GET.get('sort', 'featured').lower()
+    marca_filtro = request.GET.get('brand', '').lower()
+
+    # 3. Aplicamos los filtros a la lista de productos
+    if tipo_filtro and tipo_filtro != 'all':
+        items = items.filter(categoria__tipo__iexact=tipo_filtro)
+    if genero_filtro and genero_filtro != 'all':
+        items = items.filter(categoria__genero__iexact=genero_filtro)
+    if marca_filtro and marca_filtro != 'all':
+        items = items.filter(marca__nombre__iexact=marca_filtro)
+    if precio_filtro and precio_filtro != 'all':
+        if precio_filtro == 'up_to_60000':
+            items = items.filter(precio__lte=60000)
+        elif precio_filtro == '60000_100000':
+            items = items.filter(precio__gte=60000, precio__lte=100000)
+        elif precio_filtro == 'over_100000':
+            items = items.filter(precio__gt=100000)
+
+    # 4. Aplicamos el ordenamiento
+    if sort_order == 'price_asc':
+        items = items.order_by('precio')
+    elif sort_order == 'price_desc':
+        items = items.order_by('-precio')
+    elif sort_order == 'name_asc':
+        items = items.order_by('nombre')
+
+    # 5. Obtenemos TODAS las opciones de filtros para poblar los menús
+    tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
+    generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
+    marcas_disponibles = Marca.objects.all().order_by('nombre')
+
+    # 6. Paginación
+    paginator = Paginator(items, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+
+    # 7. Preparamos el contexto completo para la plantilla
+    context = {
+        'productos_exclusivos': page_obj,  # La plantilla itera sobre esto
+        'querystring': request.GET.urlencode(),
+        'current': {
+            'type': tipo_filtro or 'all',
+            'price': precio_filtro or 'all',
+            'gender': genero_filtro or 'all',
+            'sort': sort_order or 'featured',
+            'brand': marca_filtro or 'all',
+        },
+        'tipos': tipos_disponibles,
+        'generos': generos_disponibles,
+        'marcas': marcas_disponibles,
+    }
+
+    return render(request, 'exclusivos_catalog.html', context)
