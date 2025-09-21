@@ -135,5 +135,31 @@
         </button>
       </div>
     </div>
+
+    <div class="dd relative">
+      <button type="button"
+              class="dd-toggle inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 bg-white shadow-sm text-gray-700 hover:bg-gray-50"
+              data-param="brand" aria-haspopup="true" aria-expanded="false">
+        <span class="dd-label">
+          {% if current.brand != 'all' %}{{ current.brand|title }}{% else %}Todas las marcas{% endif %}
+        </span>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-gray-500"></i>
+      </button>
+      <div class="dd-menu hidden absolute z-20 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg py-1">
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
+                data-param="brand" data-value="all">
+          <span>Todas las marcas</span>
+          {% if current.brand == 'all' %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
+        </button>
+        {% for marca in marcas %}
+        <button type="button" class="dd-option w-full flex items-center justify-between px-3 py-2 hover:bg-gray-50 text-left"
+                data-param="brand" data-value="{{ marca.nombre|lower }}">
+          <span>{{ marca.nombre }}</span>
+          {% if current.brand == marca.nombre|lower %}<i data-lucide="check" class="w-4 h-4 text-primary"></i>{% endif %}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
   </div>
 </div>

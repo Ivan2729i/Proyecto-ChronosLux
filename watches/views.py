@@ -104,14 +104,16 @@ def build_home_context():
 def home(request):
     return render(request, 'home.html', build_home_context())
 
+# --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS NORMALES ---
+
 def catalog(request):
-    # Consultar los relojes de la base de datos
-    items = Producto.objects.select_related('categoria', 'marca', 'imgproducto').all()
+    items = Producto.objects.select_related('categoria', 'marca', 'imgproducto').filter(es_exclusivo=False)
 
     # Filtros
     t = (request.GET.get('type') or '').lower()
     price = (request.GET.get('price') or '').lower()
     gender = (request.GET.get('gender') or '').lower()
+    marca_filtro = (request.GET.get('brand') or '').lower()
 
     # Funciones de filtro
     def match_type(x):
@@ -131,8 +133,12 @@ def catalog(request):
         if not gender or gender == 'all': return True
         return (x.categoria.genero or '').lower() == gender
 
+    def match_brand(x):
+        if not marca_filtro or marca_filtro == 'all': return True
+        return (x.marca.nombre or '').lower() == marca_filtro
+
     # Aplicar filtros
-    items = [x for x in items if match_type(x) and match_price(x) and match_gender(x)]
+    items = [x for x in items if match_type(x) and match_price(x) and match_gender(x) and match_brand(x)]
 
     # Ordenamiento
     sort = (request.GET.get('sort') or 'featured').lower()
@@ -145,6 +151,7 @@ def catalog(request):
 
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
+    marcas_disponibles = Marca.objects.all().order_by('nombre')
 
     # Paginación
     page_number = request.GET.get('page') or 1
@@ -160,9 +167,11 @@ def catalog(request):
             'price': price or 'all',
             'gender': gender or 'all',
             'sort': sort or 'featured',
+            'brand': marca_filtro or 'all',
         },
         'tipos': tipos_disponibles,
         'generos': generos_disponibles,
+        'marcas': marcas_disponibles,
     })
 
 def product_detail(request, producto_id):
@@ -183,6 +192,7 @@ def product_detail(request, producto_id):
     }
     return render(request, template_name, context)
 
+# --- FIN: LÓGICA COMPLETA DE VISTA Y FILTROS NORMALES ---
 
 # --- INICIO: LÓGICA COMPLETA DEL CARRITO ---
 
@@ -388,7 +398,7 @@ def eliminar_producto(request, producto_id):
 
 # --- FIN: LÓGICA COMPLETA DE ADMIN ---
 
-# --- INICIO: LÓGICA COMPLETA DE FILTROS EXCLUSIVE ---
+# --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS EXCLUSIVE ---
 def exclusivos_catalog(request):
     # 1. Obtenemos solo los productos marcados como exclusivos
     items = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(es_exclusivo=True)
@@ -450,3 +460,5 @@ def exclusivos_catalog(request):
     }
 
     return render(request, 'exclusivos_catalog.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE FILTROS EXCLUSIVE ---

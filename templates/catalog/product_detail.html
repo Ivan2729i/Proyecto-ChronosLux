@@ -8,7 +8,7 @@
 
     {# Sección de Imagen #}
     <div class="bg-gray-100 rounded-lg p-8">
-      <img src="{% get_static_prefix %}img/{{ producto.imgproducto.url }}" alt="{{ producto.marca.nombre }} {{ producto.nombre }}" class="w-full h-auto object-contain">
+      <img src="{{ producto.imgproducto.url.url }}" alt="{{ producto.marca.nombre }} {{ producto.nombre }}" class="w-full h-auto object-contain">
     </div>
 
     {# Sección de Detalles del Producto #}
