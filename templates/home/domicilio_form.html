@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <h1 class="text-3xl font-bold custom-text-foreground mb-6">
+    {% if form.instance.pk %}Editar{% else %}Agregar{% endif %} Domicilio
+  </h1>
+
+  <form method="post" class="bg-white p-6 rounded-lg shadow-md space-y-4">
+    {% csrf_token %}
+
+    {% for field in form %}
+      <div class="mb-4">
+        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+          {{ field.label }}
+        </label>
+        {{ field }}
+        {% if field.errors %}
+          <div class="mt-1">
+            {% for error in field.errors %}
+              <p class="text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <div class="flex justify-end pt-4">
+      <a href="{% url 'domicilio_list' %}" class="px-4 py-2 mr-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300">
+        Cancelar
+      </a>
+      <button type="submit" class="btn-animado custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md">
+        Guardar Domicilio
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

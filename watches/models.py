@@ -94,7 +94,7 @@ class DetalleCarrito(models.Model):
 
 
 class Domicilio(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     telefono = models.CharField(max_length=30, blank=True, null=True)
     calle = models.CharField(max_length=150)
     num_ext = models.CharField(max_length=20)
