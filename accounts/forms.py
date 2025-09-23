@@ -4,10 +4,12 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 import re
+from watches.models import Domicilio
 
 User = get_user_model()
 
-# ---------- Reglas / Regex ----------
+# --- INICIO: LÓGICA COMPLETA DEL LOGIN ---
+
 NAME_RE = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' ]+$")
 PWD_RE  = re.compile(
     r"""
@@ -187,7 +189,6 @@ class SignupForm(UserCreationForm):
         return cleaned_data
 
     def save(self, commit=True):
-        # Saltamos save de UserCreationForm para no reactivar validaciones por defecto
         user = super(UserCreationForm, self).save(commit=False)
         user.first_name = self.cleaned_data["first_name"].strip()
         user.last_name  = self.cleaned_data["last_name"].strip()
@@ -197,3 +198,65 @@ class SignupForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+# --- FIN: LÓGICA COMPLETA DEL LOGIN ---
+
+# --- INICIO: LÓGICA COMPLETA DE REGISTRO DOMICILIOS ---
+
+class DomicilioForm(forms.ModelForm):
+    class Meta:
+        model = Domicilio
+        exclude = ['usuario']
+        widgets = {
+            'telefono': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'calle': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'num_ext': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'num_int': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'colonia': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'estado': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'cp': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+            'pais': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
+        }
+
+    def clean_telefono(self):
+        telefono = self.cleaned_data.get('telefono')
+        # Solo validamos si el campo no está vacío
+        if telefono:
+            if not telefono.isdigit():
+                raise forms.ValidationError("El teléfono solo puede contener números.")
+            if len(telefono) != 10:
+                raise forms.ValidationError("El teléfono debe tener exactamente 10 dígitos.")
+        return telefono
+
+    def clean_num_ext(self):
+        num_ext = self.cleaned_data.get('num_ext')
+        if num_ext and not num_ext.isdigit():
+            raise forms.ValidationError("El número exterior solo puede contener números.")
+        return num_ext
+
+    def clean_num_int(self):
+        num_int = self.cleaned_data.get('num_int')
+        if num_int and not num_int.isdigit():
+            raise forms.ValidationError("El número interior solo puede contener números.")
+        return num_int
+
+    def clean_estado(self):
+        estado = self.cleaned_data.get('estado')
+        if estado and not re.match(r'^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$', estado):
+            raise forms.ValidationError("El estado solo puede contener letras, acentos y espacios.")
+        return estado
+
+    def clean_cp(self):
+        cp = self.cleaned_data.get('cp')
+        if cp:
+            if not cp.isdigit():
+                raise forms.ValidationError("El Código Postal solo puede contener números.")
+            if len(cp) != 5:
+                raise forms.ValidationError("El Código Postal debe tener exactamente 5 dígitos.")
+        return cp
+
+    def clean_pais(self):
+        pais = self.cleaned_data.get('pais')
+        if pais and not re.match(r'^[a-zA-Z\sáéíóúÁÉÍÓÚñÑ]+$', pais):
+            raise forms.ValidationError("El país solo puede contener letras, acentos y espacios.")
+        return pais

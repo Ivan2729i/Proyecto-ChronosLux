@@ -8,6 +8,7 @@ import json
 from .forms import ProductoForm
 from django.db.models import Q
 
+
 def build_home_context():
     featured_watches = [
         {
@@ -475,3 +476,4 @@ def exclusivos_catalog(request):
     return render(request, 'exclusivos_catalog.html', context)
 
 # --- FIN: LÓGICA COMPLETA DE FILTROS EXCLUSIVE ---
+
