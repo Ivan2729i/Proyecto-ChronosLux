@@ -118,7 +118,7 @@ class Envio(models.Model):
 
 
 class Pedido(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     carrito = models.ForeignKey(Carrito, on_delete=models.SET_NULL, blank=True, null=True)
     envio = models.OneToOneField(Envio, on_delete=models.CASCADE, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)

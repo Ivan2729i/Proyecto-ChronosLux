@@ -95,10 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 data.cart_items.forEach(item => {
-                    const imageUrl = `/media/watches/${item.image_url}`;
                     const itemHTML = `
                         <div class="flex items-center space-x-4 mb-4 p-4 border rounded-lg">
-                            <img src="${imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                            <img src="/media/${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
                             <div class="flex-1">
                                 <h3 class="font-semibold">${item.brand} ${item.name}</h3>
                                 <p class="text-gray-600">$${item.price.toFixed(2)}</p>

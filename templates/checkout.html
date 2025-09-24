@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+    <h1 class="text-3xl font-bold text-center mb-8">Finalizar Compra</h1>
+
+    <form action="{% url 'place_order' %}" method="post">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-2 space-y-8">
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4">Resumen de tu pedido</h2>
+                    <div id="checkout-cart-items">
+                        {% for item in cart_items %}
+                        <div class="flex items-center space-x-4 py-4 border-b last-border-b-0">
+                            <img src="/media/{{ item.image_url }}" alt="{{ item.name }}" class="w-20 h-20 object-cover rounded-md">
+                            <div class="flex-1">
+                                <h3 class="font-semibold">{{ item.brand }} {{ item.name }}</h3>
+                                <p class="text-gray-600">${{ item.price|floatformat:2|intcomma }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-gray-500 text-sm">Cantidad:</p>
+                                <p class="font-semibold text-lg">{{ item.quantity }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4">Dirección de Envío</h2>
+                    {% if domicilios %}
+                        <div class="space-y-4">
+                            {% for domicilio in domicilios %}
+                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
+                                <input type="radio" name="domicilio_seleccionado" value="{{ domicilio.id }}" class="mr-4" {% if forloop.first %}checked{% endif %} required>
+                                <div>
+                                    <p class="font-semibold">{{ domicilio.calle }} #{{ domicilio.num_ext }}</p>
+                                    <p class="text-sm text-gray-600">{{ domicilio.colonia }}, {{ domicilio.cp }}</p>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <a href="{% url 'domicilio_create' %}" class="mt-4 inline-block text-blue-600 hover:underline">Agregar otra dirección</a>
+                    {% else %}
+                        <p>No tienes ninguna dirección guardada. Por favor, agrega una para continuar.</p>
+                        <a href="{% url 'domicilio_create' %}" class="btn-animado mt-2">Agregar Dirección</a>
+                    {% endif %}
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h2 class="text-xl font-semibold mb-4">Método de Pago</h2>
+                    <div class="space-y-4">
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
+                            <input type="radio" name="metodo_pago" value="tarjeta_credito" class="mr-4" checked required>
+                            <span>Tarjeta de Crédito</span>
+                        </label>
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
+                            <input type="radio" name="metodo_pago" value="tarjeta_debito" class="mr-4" required>
+                            <span>Tarjeta de Débito</span>
+                        </label>
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
+                            <input type="radio" name="metodo_pago" value="paypal" class="mr-4" required>
+                            <span>PayPal</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md h-fit">
+                <h2 class="text-xl font-semibold mb-4">Total</h2>
+                <div class="flex justify-between mb-2">
+                    <span>Subtotal:</span>
+                    <span id="subtotal-value">${{ total_price|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="flex justify-between mb-4">
+                    <span>Envío:</span>
+                    <span>Gratis</span>
+                </div>
+                <div class="border-t pt-4 flex justify-between font-bold text-lg">
+                    <span>Total a pagar:</span>
+                    <span id="grand-total-value">${{ total_price|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="mt-6">
+                    <button type="submit" class="w-full btn-animado" {% if not domicilios or not cart_items %}disabled{% endif %}>
+                        Realizar Pedido
+                    </button>
+                    {% if not domicilios %}
+                        <p class="text-xs text-center text-red-600 mt-2">Debes agregar una dirección para continuar.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

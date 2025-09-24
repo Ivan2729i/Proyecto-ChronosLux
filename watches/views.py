@@ -2,11 +2,14 @@ import os
 import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Producto, Categoria, Resena, ImgProducto, Marca
+from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago
 from django.http import JsonResponse
 import json
 from .forms import ProductoForm
 from django.db.models import Q
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from datetime import timedelta
 
 
 def build_home_context():
@@ -477,3 +480,99 @@ def exclusivos_catalog(request):
 
 # --- FIN: LÓGICA COMPLETA DE FILTROS EXCLUSIVE ---
 
+# --- INICIO: LÓGICA COMPLETA DE CHECKOUT CARRITO ---
+
+@login_required
+def checkout_page(request):
+    cart = request.session.get('cart', {})
+    cart_items = []
+    total_price = 0
+    for pid, item_data in cart.items():
+        subtotal = item_data['quantity'] * float(item_data['price'])
+        cart_items.append({
+            'id': pid,
+            'name': item_data['name'],
+            'brand': item_data.get('brand', ''),
+            'quantity': item_data['quantity'],
+            'price': float(item_data['price']),
+            'image_url': item_data['image_url'],
+            'subtotal': subtotal
+        })
+        total_price += subtotal
+
+    domicilios = Domicilio.objects.filter(usuario=request.user)
+
+    context = {
+        'cart_items': cart_items,
+        'total_price': total_price,
+        'domicilios': domicilios
+    }
+
+    return render(request, 'checkout.html', context)
+
+
+@login_required
+def place_order(request):
+    if request.method == 'POST':
+        cart = request.session.get('cart', {})
+        domicilio_id = request.POST.get('domicilio_seleccionado')
+        metodo_pago = request.POST.get('metodo_pago')
+
+        if not cart or not domicilio_id or not metodo_pago:
+            return redirect('checkout_page')
+
+        domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+        total_price = sum(item['quantity'] * float(item['price']) for item in cart.values())
+
+        # 1. Crear el Envío
+        fecha_envio = timezone.now()
+        fecha_llegada = fecha_envio + timedelta(days=7)
+        envio = Envio.objects.create(
+            domicilio=domicilio,
+            fecha_envio=fecha_envio,
+            fecha_llegada=fecha_llegada
+        )
+
+        # 2. Crear el Pedido (CON LA CORRECCIÓN)
+        pedido = Pedido.objects.create(
+            usuario=request.user,
+            envio=envio,
+            fecha=timezone.now(),
+            subtotal=total_price,  # ✅ LÍNEA AÑADIDA
+            total_pagar=total_price
+        )
+
+        # 3. Crear los Detalles del Pedido
+        for pid, item_data in cart.items():
+            producto = get_object_or_404(Producto, pk=pid)
+            DetallesPedido.objects.create(
+                pedido=pedido,
+                producto=producto,
+                cantidad=item_data['quantity'],
+                precio_unitario=float(item_data['price'])
+            )
+
+        # 4. Crear el Pago
+        Pago.objects.create(
+            pedido=pedido,
+            metodo_pago=metodo_pago,
+            monto_pagar=total_price,
+            estado='aprobado'
+        )
+
+        # 5. Limpiar el carrito
+        del request.session['cart']
+
+        # 6. Redirigir a confirmación
+        return redirect('order_confirmation', order_id=pedido.id)
+
+    return redirect('home')
+
+
+@login_required
+def order_confirmation(request, order_id):
+    pedido = get_object_or_404(Pedido, pk=order_id, usuario=request.user)
+    context = {
+        'pedido': pedido
+    }
+    return render(request, 'order_confirmation.html', context)
