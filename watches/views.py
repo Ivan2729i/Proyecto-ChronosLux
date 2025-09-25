@@ -219,10 +219,6 @@ def product_detail(request, producto_id):
 # --- INICIO: LÓGICA COMPLETA DEL CARRITO ---
 
 def _get_user_cart(request):
-    """
-    Función auxiliar para obtener o crear el carrito activo de un usuario logueado.
-    También maneja la expiración del carrito.
-    """
     if not request.user.is_authenticated:
         return None
 
@@ -250,19 +246,12 @@ def _get_user_cart(request):
 
 
 def add_to_cart(request, producto_id):
-    """
-    Agrega un producto al carrito. Usa la BDD si el usuario está logueado,
-    si no, usa la sesión. Siempre devuelve el total de items actualizado.
-    """
     producto = get_object_or_404(Producto, pk=producto_id)
     total_items = 0
 
     if request.user.is_authenticated:
-        # --- LÓGICA CORREGIDA Y DEFINITIVA PARA USUARIOS LOGUEADOS ---
         cart = _get_user_cart(request)
         if cart:
-            # get_or_create busca si el producto ya está en el carrito.
-            # Si no está, lo crea con cantidad 1.
             detalle, created = DetalleCarrito.objects.get_or_create(
                 carrito=cart,
                 producto=producto,
@@ -273,7 +262,6 @@ def add_to_cart(request, producto_id):
                 }
             )
 
-            # Si NO fue creado (es decir, ya existía), entonces incrementamos la cantidad.
             if not created:
                 detalle.cantidad += 1
                 detalle.subtotal = detalle.cantidad * detalle.precio_unitario
@@ -283,7 +271,6 @@ def add_to_cart(request, producto_id):
             total_items_query = DetalleCarrito.objects.filter(carrito=cart).aggregate(total=Sum('cantidad'))
             total_items = total_items_query['total'] or 0
     else:
-        # --- LÓGICA PARA USUARIOS ANÓNIMOS (SIN CAMBIOS) ---
         cart_session = request.session.get('cart', {})
         pid_str = str(producto_id)
         if pid_str in cart_session:
@@ -298,7 +285,6 @@ def add_to_cart(request, producto_id):
 
     # Devolvemos el total para que JavaScript pueda actualizar el ícono.
     return JsonResponse({'status': 'ok', 'total_items': total_items})
-
 
 def get_cart_data(request):
     cart_items = []
@@ -582,22 +568,28 @@ def exclusivos_catalog(request):
 
 @login_required
 def checkout_page(request):
-    cart = request.session.get('cart', {})
     cart_items = []
     total_price = 0
-    for pid, item_data in cart.items():
-        subtotal = item_data['quantity'] * float(item_data['price'])
-        cart_items.append({
-            'id': pid,
-            'name': item_data['name'],
-            'brand': item_data.get('brand', ''),
-            'quantity': item_data['quantity'],
-            'price': float(item_data['price']),
-            'image_url': item_data['image_url'],
-            'subtotal': subtotal
-        })
-        total_price += subtotal
 
+    # ✅ Usa la función auxiliar para obtener el carrito de la base de datos
+    cart = _get_user_cart(request)
+    if cart:
+        # Obtiene todos los detalles de ese carrito
+        detalles = DetalleCarrito.objects.filter(carrito=cart).select_related('producto__marca',
+                                                                              'producto__imgproducto')
+        for item in detalles:
+            cart_items.append({
+                'id': item.producto.id,
+                'name': item.producto.nombre,
+                'brand': item.producto.marca.nombre,
+                'quantity': item.cantidad,
+                'price': float(item.precio_unitario),
+                'image_url': item.producto.imgproducto.url.name,  # Pasamos solo el nombre del archivo
+                'subtotal': float(item.subtotal)
+            })
+            total_price += item.subtotal
+
+    # Obtiene los domicilios del usuario (esto ya estaba bien)
     domicilios = Domicilio.objects.filter(usuario=request.user)
 
     context = {

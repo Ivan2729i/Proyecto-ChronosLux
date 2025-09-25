@@ -15,7 +15,7 @@
                     <h2 class="text-xl font-semibold mb-4">Resumen de tu pedido</h2>
                     <div id="checkout-cart-items">
                         {% for item in cart_items %}
-                        <div class="flex items-center space-x-4 py-4 border-b last-border-b-0">
+                        <div class="flex items-center space-x-4 py-4 border-b last:border-b-0">
                             <img src="/media/{{ item.image_url }}" alt="{{ item.name }}" class="w-20 h-20 object-cover rounded-md">
                             <div class="flex-1">
                                 <h3 class="font-semibold">{{ item.brand }} {{ item.name }}</h3>
