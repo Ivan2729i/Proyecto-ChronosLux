@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+  <h1 class="text-3xl font-bold text-center mb-8">Mi Historial de Compras</h1>
+
+  <div class="space-y-8">
+    {% for pedido in pedidos %}
+      <div class="bg-white rounded-lg shadow-md p-6 border">
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 mb-4">
+          <div>
+            <p class="text-sm text-gray-500">Número de Pedido</p>
+            <p class="font-bold font-mono">#{{ pedido.id }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Fecha de Compra</p>
+            <p class="font-semibold">{{ pedido.fecha|date:"d M, Y" }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Total</p>
+            <p class="font-bold text-lg custom-text-secondary">${{ pedido.total_pagar|floatformat:2|intcomma }}</p>
+          </div>
+          <div>
+            {% if pedido.fecha > fecha_limite_devolucion %}
+              <a href="{% url 'solicitar_devolucion' pedido.id %}" class="btn-animado text-sm py-2 px-4">Solicitar Devolución</a>
+            {% else %}
+              <span class="text-sm text-gray-400" title="El periodo para devoluciones ha expirado.">Devolución no disponible</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          {% for detalle in pedido.detallespedido_set.all %}
+            <div class="flex items-center space-x-4">
+              <img src="{{ detalle.producto.imgproducto.url.url }}" alt="{{ detalle.producto.nombre }}" class="w-16 h-16 object-cover rounded-md">
+              <div class="flex-1">
+                <p class="font-semibold">{{ detalle.producto.nombre }}</p>
+                <p class="text-sm text-gray-500">{{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2|intcomma }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center py-16">
+        <p class="text-xl text-gray-500">Aún no has realizado ninguna compra.</p>
+        <a href="{% url 'catalog' %}" class="btn-animado mt-4">Explorar catálogo</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

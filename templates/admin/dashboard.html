@@ -9,12 +9,19 @@
         Administrar
         <span class="custom-text-secondary">Relojes</span>
     </h1>
-    <a href="{% url 'crear_producto' %}" class="btn-animado font-semibold rounded-md
-                   custom-bg-secondary custom-text-secondary-foreground
-                   hover:bg-primary hover:text-primary-foreground
-                   transition-colors">
-      Agregar Nuevo Reloj
-    </a>
+
+    <div class="flex gap-4">
+      <a href="{% url 'gestionar_devoluciones' %}" class="btn-animado font-semibold rounded-md
+                     bg-gray-200 text-gray-800 hover:bg-gray-300">
+        Gestionar Devoluciones
+      </a>
+      <a href="{% url 'crear_producto' %}" class="btn-animado font-semibold rounded-md
+                     custom-bg-secondary custom-text-secondary-foreground
+                     hover:bg-primary hover:text-primary-foreground
+                     transition-colors">
+        Agregar Nuevo Reloj
+      </a>
+    </div>
   </div>
 
   <div class="bg-white shadow-md rounded-lg overflow-hidden">

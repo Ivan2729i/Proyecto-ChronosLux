@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold custom-text-foreground">Gestionar Devoluciones</h1>
+    <a href="{% url 'admin_dashboard' %}" class="text-blue-600 hover:underline">
+      &larr; Volver al Dashboard
+    </a>
+  </div>
+
+  <div class="bg-white shadow-md rounded-lg overflow-hidden">
+    <table class="min-w-full leading-normal">
+      <thead>
+        <tr class="border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+          <th class="px-5 py-3">ID Devolución</th>
+          <th class="px-5 py-3">Usuario</th>
+          <th class="px-5 py-3">Fecha Solicitud</th>
+          <th class="px-5 py-3">Motivo</th>
+          <th class="px-5 py-3">Estado Actual</th>
+          <th class="px-5 py-3">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for devolucion in devoluciones %}
+        <tr class="border-b border-gray-200 hover:bg-gray-50">
+          <td class="px-5 py-4 text-sm font-mono">#{{ devolucion.id }}</td>
+          <td class="px-5 py-4 text-sm">{{ devolucion.pedido.usuario.email }}</td>
+          <td class="px-5 py-4 text-sm">{{ devolucion.fecha_devolucion|date:"d M, Y" }}</td>
+          <td class="px-5 py-4 text-sm max-w-xs truncate">{{ devolucion.descripcion_devolucion }}</td>
+          <td class="px-5 py-4 text-sm">
+            <span class="px-3 py-1 text-xs font-semibold leading-tight rounded-full
+              {% if devolucion.estado == 'solicitada' %} bg-yellow-100 text-yellow-800
+              {% elif devolucion.estado == 'aceptada' %} bg-green-100 text-green-800
+              {% elif devolucion.estado == 'rechazada' %} bg-red-100 text-red-800
+              {% endif %}">
+              {{ devolucion.get_estado_display }}
+            </span>
+          </td>
+          <td class="px-5 py-4 text-sm">
+            {% if devolucion.estado == 'solicitada' %}
+              <div class="flex gap-2">
+                <form method="post" action="{% url 'gestionar_devoluciones' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="devolucion_id" value="{{ devolucion.id }}">
+                  <input type="hidden" name="nuevo_estado" value="aceptada">
+                  <button type="submit" class="text-green-600 hover:text-green-900 font-semibold">Aceptar</button>
+                </form>
+                <form method="post" action="{% url 'gestionar_devoluciones' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="devolucion_id" value="{{ devolucion.id }}">
+                  <input type="hidden" name="nuevo_estado" value="rechazada">
+                  <button type="submit" class="text-red-600 hover:text-red-900 font-semibold">Rechazar</button>
+                </form>
+              </div>
+            {% else %}
+              <span class="text-gray-500">Gestionada</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-10 text-gray-500">
+            No hay solicitudes de devolución pendientes.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -2,22 +2,30 @@
 {% load static %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-12">
-    <div class="text-center mb-10">
-      <h1 class="text-4xl font-bold font-serif mb-2">Mis Favoritos</h1>
-      <p class="text-lg text-gray-600">Tu colección personal de relojes.</p>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-      {% for watch in productos_favoritos %}
-        {% include 'catalog/_product_card.html' with watch=watch %}
-      {% empty %}
-        <div class="col-span-full text-center py-16">
-          <i data-lucide="heart" class="w-12 h-12 mx-auto text-gray-300 mb-4"></i>
-          <p class="text-xl text-gray-500">Aún no tienes relojes favoritos.</p>
-          <p class="text-gray-400 mt-2">Haz clic en el corazón de un producto para guardarlo aquí.</p>
+<div class="custom-bg-primary">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-10">
+          <h1 class="text-4xl font-bold font-serif mb-2 text-white">Mis Favoritos</h1>
+          <p class="text-lg text-gray-300">Tu colección personal de relojes.</p>
         </div>
-      {% endfor %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {% for watch in productos_favoritos %}
+
+            {% if watch.es_exclusivo %}
+              {% include 'catalog/_exclusive_product_card.html' with watch=watch %}
+            {% else %}
+              {% include 'catalog/_product_card.html' with watch=watch %}
+            {% endif %}
+
+          {% empty %}
+            <div class="col-span-full text-center py-16">
+              <i data-lucide="heart" class="w-12 h-12 mx-auto text-gray-400 mb-4"></i>
+              <p class="text-xl text-gray-300">Aún no tienes relojes favoritos.</p>
+              <p class="text-gray-400 mt-2">Haz clic en el corazón de un producto para guardarlo aquí.</p>
+            </div>
+          {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}

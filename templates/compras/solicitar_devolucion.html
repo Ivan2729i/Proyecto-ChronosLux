@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12 max-w-3xl">
+  <h1 class="text-3xl font-bold text-center mb-2">Solicitar Devolución</h1>
+  <p class="text-center text-gray-500 mb-8">Pedido #{{ pedido.id }}</p>
+
+  <form method="post" class="bg-white p-6 rounded-lg shadow-md border">
+    {% csrf_token %}
+
+    <div class="mb-6">
+      <h2 class="text-xl font-semibold mb-4">Selecciona los productos a devolver</h2>
+      <div class="space-y-4">
+        {% for detalle in pedido.detallespedido_set.all %}
+          <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <input type="checkbox" name="detalles_a_devolver" value="{{ detalle.id }}" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <img src="{{ detalle.producto.imgproducto.url.url }}" alt="{{ detalle.producto.nombre }}" class="w-16 h-16 object-cover rounded-md mx-4">
+            <div class="flex-1">
+              <p class="font-semibold">{{ detalle.producto.nombre }}</p>
+              <p class="text-sm text-gray-500">{{ detalle.cantidad }} x ${{ detalle.precio_unitario|floatformat:2|intcomma }}</p>
+            </div>
+          </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="mb-6">
+      <label for="motivo_devolucion" class="block text-xl font-semibold mb-2">Motivo de la devolución</label>
+      <textarea name="motivo_devolucion" id="motivo_devolucion" rows="4" required class="w-full p-2 border border-gray-300 rounded-md" placeholder="Ej: El producto llegó dañado, no es lo que esperaba, etc."></textarea>
+    </div>
+
+    <div class="flex justify-end gap-4">
+      <a href="{% url 'mis_compras' %}" class="px-6 py-2 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 font-semibold">
+        Cancelar
+      </a>
+      <button type="submit" class="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 font-semibold">
+        Enviar Solicitud
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

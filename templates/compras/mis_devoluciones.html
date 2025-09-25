@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-12">
+  <h1 class="text-3xl font-bold text-center mb-8">Mis Devoluciones</h1>
+
+  <div class="space-y-6 max-w-4xl mx-auto">
+    {% for devolucion in devoluciones %}
+      <div class="bg-white rounded-lg shadow-md p-6 border">
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 mb-4">
+          <div>
+            <p class="text-sm text-gray-500">Solicitud de Devolución</p>
+            <p class="font-bold font-mono">#{{ devolucion.id }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Fecha de Solicitud</p>
+            <p class="font-semibold">{{ devolucion.fecha_devolucion|date:"d M, Y" }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Estado</p>
+            <span class="px-3 py-1 text-sm font-semibold leading-tight rounded-full
+              {% if devolucion.estado == 'solicitada' %} bg-yellow-100 text-yellow-800
+              {% elif devolucion.estado == 'aceptada' %} bg-green-100 text-green-800
+              {% elif devolucion.estado == 'rechazada' %} bg-red-100 text-red-800
+              {% endif %}">
+              {{ devolucion.get_estado_display }}
+            </span>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm text-gray-500 mb-1">Motivo:</p>
+          <p class="text-gray-700">{{ devolucion.descripcion_devolucion }}</p>
+          <p class="text-xs text-gray-400 mt-4">Asociada al Pedido <a href="#" class="text-blue-500">#{{ devolucion.pedido.id }}</a></p>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-center py-16">
+        <p class="text-xl text-gray-500">No has solicitado ninguna devolución.</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

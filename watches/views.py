@@ -11,6 +11,7 @@ from django.db.models import Q, Sum
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def build_home_context():
@@ -717,4 +718,27 @@ def favoritos_list(request):
     return render(request, 'favoritos.html', context)
 
 # --- FIN: VISTAS PARA FAVORITOS ---
+
+# --- INICIO: LÓGICA COMPLETA DE MIS DEVOLUCIONES ADMIN ---
+
+@staff_member_required
+def gestionar_devoluciones(request):
+    # Si se envió un formulario para cambiar el estado de una devolución
+    if request.method == 'POST':
+        devolucion_id = request.POST.get('devolucion_id')
+        nuevo_estado = request.POST.get('nuevo_estado')
+
+        if devolucion_id and nuevo_estado in ['aceptada', 'rechazada']:
+            devolucion = get_object_or_404(Devolucion, pk=devolucion_id)
+            devolucion.estado = nuevo_estado
+            devolucion.save()
+            return redirect('gestionar_devoluciones')
+
+    # Obtenemos todas las devoluciones para mostrarlas en la tabla
+    lista_devoluciones = Devolucion.objects.select_related('pedido__usuario').all().order_by('-fecha_devolucion')
+
+    context = {
+        'devoluciones': lista_devoluciones
+    }
+    return render(request, 'admin/gestionar_devoluciones.html', context)
 
