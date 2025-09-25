@@ -91,8 +91,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (data.cart_items.length === 0) {
                 cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center">Tu carrito está vacío</p>';
-                checkoutBtn.disabled = true;
-                checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                checkoutBtn.setAttribute('aria-disabled', 'true');
             } else {
                 data.cart_items.forEach(item => {
                     const itemHTML = `
@@ -112,8 +112,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     `;
                     cartItemsContainer.innerHTML += itemHTML;
                 });
-                checkoutBtn.disabled = false;
-                checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                checkoutBtn.setAttribute('aria-disabled', 'false');
             }
             cartTotalEl.textContent = `$${data.total_price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             updateCartIcon(data.total_items);
