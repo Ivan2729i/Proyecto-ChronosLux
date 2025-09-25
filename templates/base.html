@@ -18,7 +18,7 @@
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
 
     <header class="sticky top-0 z-50 custom-bg-primary custom-text-primary-foreground shadow-lg">
         <div class="container mx-auto px-4">
@@ -58,9 +58,16 @@
                         <i data-lucide="user" class="w-5 h-5"></i>
                     </button>
 
+                    <a href="{% url 'favoritos_list' %}" title="Mis Favoritos" class="text-white hover:text-gray-300">
+                        <i data-lucide="heart" class="w-6 h-6"></i>
+                    </a>
+
                     <button id="cart-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Carrito">
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-                        <span id="cart-count" class="absolute -top-2 -right-2 custom-bg-secondary custom-text-secondary-foreground min-w-5 h-5 flex items-center justify-center text-xs rounded-full hidden">0</span>
+                        <span id="cart-count"
+                              class="absolute -top-2 -right-2 custom-bg-secondary custom-text-secondary-foreground min-w-5 h-5 flex items-center justify-center text-xs rounded-full {% if cart_total_items == 0 %}hidden{% endif %}">
+                            {{ cart_total_items }}
+                        </span>
                     </button>
 
                     <button id="mobile-menu-btn" class="md:hidden p-2 hover:bg-primary-foreground/10 rounded-md transition-colors">
@@ -174,9 +181,11 @@
                     <span class="font-semibold text-lg">Total:</span>
                     <span id="cart-total" class="font-serif font-black text-2xl text-primary">$0</span>
                 </div>
-                <button id="checkout-btn" class="w-full py-3 custom-bg-primary custom-text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50" disabled>
+                <a href="{% url 'checkout_page' %}"
+                   id="checkout-btn"
+                   class="block text-center w-full py-3 custom-bg-primary custom-text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors">
                     Proceder al Pago
-                </button>
+                </a>
             </div>
         </div>
     </div>

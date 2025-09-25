@@ -76,10 +76,10 @@ class Carrito(models.Model):
     fecha_creacion = models.DateTimeField(blank=True, null=True)
     fecha_expiracion = models.DateTimeField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='activo')
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Carrito {self.id} de {self.usuario}"
+        return f"Carrito {self.id} de {self.usuario.email}"
 
 
 class DetalleCarrito(models.Model):
@@ -118,7 +118,7 @@ class Envio(models.Model):
 
 
 class Pedido(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     carrito = models.ForeignKey(Carrito, on_delete=models.SET_NULL, blank=True, null=True)
     envio = models.OneToOneField(Envio, on_delete=models.CASCADE, blank=True, null=True)
     fecha = models.DateTimeField(blank=True, null=True)
@@ -187,7 +187,7 @@ class Devolucion(models.Model):
 
 
 class Favorito(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     fecha = models.DateTimeField(auto_now_add=True)
 

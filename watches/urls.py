@@ -15,4 +15,9 @@ urlpatterns = [
     path('administracion/editar/<int:producto_id>/', views.editar_producto, name='editar_producto'),
     path('administracion/eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
     path('accounts/', include('accounts.urls')),
+    path('checkout/', views.checkout_page, name='checkout_page'),
+    path('checkout/place_order/', views.place_order, name='place_order'),
+    path('pedido/confirmacion/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
+    path('favoritos/', views.favoritos_list, name='favoritos_list'),
+    path('favoritos/toggle/<int:producto_id>/', views.toggle_favorite, name='toggle_favorite'),
 ]
