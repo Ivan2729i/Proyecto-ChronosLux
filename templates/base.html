@@ -18,7 +18,7 @@
 
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased" data-is-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}">
 
     <header class="sticky top-0 z-50 custom-bg-primary custom-text-primary-foreground shadow-lg">
         <div class="container mx-auto px-4">
@@ -57,6 +57,10 @@
                     <button id="user-icon-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Usuario">
                         <i data-lucide="user" class="w-5 h-5"></i>
                     </button>
+
+                    <a href="{% url 'favoritos_list' %}" title="Mis Favoritos" class="text-white hover:text-gray-300">
+                        <i data-lucide="heart" class="w-6 h-6"></i>
+                    </a>
 
                     <button id="cart-btn" class="relative p-2 hover:bg-primary-foreground/10 rounded-md transition-colors" title="Carrito">
                         <i data-lucide="shopping-cart" class="w-5 h-5"></i>

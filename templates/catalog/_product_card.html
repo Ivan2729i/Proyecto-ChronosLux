@@ -19,9 +19,13 @@
 
       <button type="button"
               class="fav-toggle absolute top-4 right-4 grid place-items-center w-9 h-9 rounded-full bg-gray-900/50 backdrop-blur-sm text-white hover:bg-gray-800/60 transition-colors"
-              aria-label="Agregar a favoritos"
-              data-watch-id="{{ watch.id }}">
-        <i data-lucide="heart" class="w-5 h-5"></i>
+              data-watch-id="{{ watch.id }}"
+              data-active="{% if watch.id in favoritos_ids %}1{% else %}0{% endif %}">
+          <i data-lucide="heart" class="w-5 h-5
+              {% if watch.id in favoritos_ids %}
+                  fill-current text-rose-500  {% else %}
+                  text-gray-600               {% endif %}
+          "></i>
       </button>
     </div>
 

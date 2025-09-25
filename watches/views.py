@@ -2,11 +2,11 @@ import os
 import uuid
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
-from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago
+from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
 from django.http import JsonResponse
 import json
 from .forms import ProductoForm
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
@@ -165,6 +165,10 @@ def catalog(request):
     elif sort == 'name_asc':
         items = sorted(items, key=lambda x: x.nombre)
 
+    favoritos_ids = []
+    if request.user.is_authenticated:
+        favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
+
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
     marcas_disponibles = Marca.objects.all().order_by('nombre')
@@ -189,6 +193,7 @@ def catalog(request):
         'tipos': tipos_disponibles,
         'generos': generos_disponibles,
         'marcas': marcas_disponibles,
+        'favoritos_ids': favoritos_ids,
     })
 
 def product_detail(request, producto_id):
@@ -213,89 +218,176 @@ def product_detail(request, producto_id):
 
 # --- INICIO: LÓGICA COMPLETA DEL CARRITO ---
 
-def add_to_cart(request, producto_id):
-    """ Agrega un producto al carrito en la sesión o incrementa su cantidad. """
-    producto = get_object_or_404(Producto, pk=producto_id)
-    cart = request.session.get('cart', {})
-    pid_str = str(producto.id)
+def _get_user_cart(request):
+    """
+    Función auxiliar para obtener o crear el carrito activo de un usuario logueado.
+    También maneja la expiración del carrito.
+    """
+    if not request.user.is_authenticated:
+        return None
 
-    if pid_str in cart:
-        cart[pid_str]['quantity'] += 1
-    else:
-        cart[pid_str] = {
-            'quantity': 1,
-            'price': str(producto.precio),
-            'name': producto.nombre,
-            'image_url': producto.imgproducto.url.name,
-            'brand': producto.marca.nombre
+    # Busca un carrito activo que no haya expirado.
+    cart, created = Carrito.objects.get_or_create(
+        usuario=request.user,
+        estado='activo',
+        defaults={
+            'fecha_creacion': timezone.now(),
+            'fecha_expiracion': timezone.now() + timedelta(minutes=60)
         }
+    )
 
-    request.session['cart'] = cart
-    total_items = sum(item['quantity'] for item in cart.values())
+    # Si el carrito ya existía, comprueba si ha expirado.
+    if not created and cart.fecha_expiracion < timezone.now():
+        cart.estado = 'expirado'
+        cart.save()
+        # Y crea uno nuevo.
+        cart = Carrito.objects.create(
+            usuario=request.user,
+            fecha_creacion=timezone.now(),
+            fecha_expiracion=timezone.now() + timedelta(minutes=60)
+        )
+    return cart
+
+
+def add_to_cart(request, producto_id):
+    """
+    Agrega un producto al carrito. Usa la BDD si el usuario está logueado,
+    si no, usa la sesión. Siempre devuelve el total de items actualizado.
+    """
+    producto = get_object_or_404(Producto, pk=producto_id)
+    total_items = 0
+
+    if request.user.is_authenticated:
+        # --- LÓGICA CORREGIDA Y DEFINITIVA PARA USUARIOS LOGUEADOS ---
+        cart = _get_user_cart(request)
+        if cart:
+            # get_or_create busca si el producto ya está en el carrito.
+            # Si no está, lo crea con cantidad 1.
+            detalle, created = DetalleCarrito.objects.get_or_create(
+                carrito=cart,
+                producto=producto,
+                defaults={
+                    'cantidad': 1,
+                    'precio_unitario': producto.precio,
+                    'subtotal': producto.precio
+                }
+            )
+
+            # Si NO fue creado (es decir, ya existía), entonces incrementamos la cantidad.
+            if not created:
+                detalle.cantidad += 1
+                detalle.subtotal = detalle.cantidad * detalle.precio_unitario
+                detalle.save()
+
+            # Calculamos el total de items directamente desde la base de datos para máxima precisión.
+            total_items_query = DetalleCarrito.objects.filter(carrito=cart).aggregate(total=Sum('cantidad'))
+            total_items = total_items_query['total'] or 0
+    else:
+        # --- LÓGICA PARA USUARIOS ANÓNIMOS (SIN CAMBIOS) ---
+        cart_session = request.session.get('cart', {})
+        pid_str = str(producto_id)
+        if pid_str in cart_session:
+            cart_session[pid_str]['quantity'] += 1
+        else:
+            cart_session[pid_str] = {
+                'quantity': 1, 'price': str(producto.precio), 'name': producto.nombre,
+                'image_url': producto.imgproducto.url.name, 'brand': producto.marca.nombre
+            }
+        request.session['cart'] = cart_session
+        total_items = sum(item['quantity'] for item in cart_session.values())
+
+    # Devolvemos el total para que JavaScript pueda actualizar el ícono.
     return JsonResponse({'status': 'ok', 'total_items': total_items})
 
 
-def remove_from_cart(request, producto_id):
-    """ Elimina un producto completo del carrito. """
-    cart = request.session.get('cart', {})
-    pid_str = str(producto_id)
-
-    if pid_str in cart:
-        del cart[pid_str]
-
-    request.session['cart'] = cart
-    return JsonResponse({'status': 'ok'})
-
-
-def update_cart_quantity(request, producto_id):
-    """ Actualiza la cantidad de un producto (+/-). """
-    if request.method == 'POST':
-        cart = request.session.get('cart', {})
-        pid_str = str(producto_id)
-
-        if pid_str in cart:
-            data = json.loads(request.body)
-            action = data.get('action')
-
-            if action == 'increase':
-                cart[pid_str]['quantity'] += 1
-            elif action == 'decrease':
-                cart[pid_str]['quantity'] -= 1
-                if cart[pid_str]['quantity'] <= 0:
-                    del cart[pid_str]
-
-            request.session['cart'] = cart
-            return JsonResponse({'status': 'ok'})
-
-    return JsonResponse({'status': 'error'}, status=400)
-
-
 def get_cart_data(request):
-    """ Devuelve los datos completos del carrito para que JavaScript los pueda mostrar. """
-    cart = request.session.get('cart', {})
-    items_in_cart = []
+    cart_items = []
     total_price = 0
     total_items = 0
 
-    for pid, item in cart.items():
-        subtotal = item['quantity'] * float(item['price'])
-        items_in_cart.append({
-            'id': pid,
-            'name': item['name'],
-            'brand': item.get('brand', ''),
-            'quantity': item['quantity'],
-            'price': float(item['price']),
-            'image_url': item['image_url'],
-            'subtotal': subtotal
-        })
-        total_price += subtotal
-        total_items += item['quantity']
+    if request.user.is_authenticated:
+        cart = _get_user_cart(request)
+        if cart:
+            detalles = DetalleCarrito.objects.filter(carrito=cart).select_related('producto__marca',
+                                                                                  'producto__imgproducto')
+            for item in detalles:
+                cart_items.append({
+                    'id': item.producto.id,
+                    'name': item.producto.nombre,
+                    'brand': item.producto.marca.nombre,
+                    'quantity': item.cantidad,
+                    'price': float(item.precio_unitario),
+                    'image_url': item.producto.imgproducto.url.name,
+                    'subtotal': float(item.subtotal)
+                })
+                total_price += item.subtotal
+                total_items += item.cantidad
+    else:
+        # Lógica para usuarios anónimos (usa la sesión como antes)
+        cart_session = request.session.get('cart', {})
+        for pid, item_data in cart_session.items():
+            subtotal = item_data['quantity'] * float(item_data['price'])
+            cart_items.append({
+                'id': pid, 'name': item_data['name'], 'brand': item_data.get('brand', ''),
+                'quantity': item_data['quantity'], 'price': float(item_data['price']),
+                'image_url': item_data['image_url'], 'subtotal': subtotal
+            })
+            total_price += subtotal
+            total_items += item_data['quantity']
 
     return JsonResponse({
-        'cart_items': items_in_cart,
+        'cart_items': cart_items,
         'total_price': total_price,
         'total_items': total_items,
     })
+
+
+def update_cart_quantity(request, producto_id):
+    if request.method == 'POST':
+        action = json.loads(request.body).get('action')
+
+        if request.user.is_authenticated:
+            cart = _get_user_cart(request)
+            detalle = get_object_or_404(DetalleCarrito, carrito=cart, producto_id=producto_id)
+            if action == 'increase':
+                detalle.cantidad += 1
+            elif action == 'decrease':
+                detalle.cantidad -= 1
+
+            if detalle.cantidad <= 0:
+                detalle.delete()
+            else:
+                detalle.subtotal = detalle.cantidad * detalle.precio_unitario
+                detalle.save()
+        else:
+            # Lógica de sesión (sin cambios)
+            cart_session = request.session.get('cart', {})
+            pid_str = str(producto_id)
+            if pid_str in cart_session:
+                if action == 'increase':
+                    cart_session[pid_str]['quantity'] += 1
+                elif action == 'decrease':
+                    cart_session[pid_str]['quantity'] -= 1
+                    if cart_session[pid_str]['quantity'] <= 0:
+                        del cart_session[pid_str]
+                request.session['cart'] = cart_session
+
+    return JsonResponse({'status': 'ok'})
+
+
+def remove_from_cart(request, producto_id):
+    if request.user.is_authenticated:
+        cart = _get_user_cart(request)
+        DetalleCarrito.objects.filter(carrito=cart, producto_id=producto_id).delete()
+    else:
+        # Lógica de sesión (sin cambios)
+        cart_session = request.session.get('cart', {})
+        pid_str = str(producto_id)
+        if pid_str in cart_session:
+            del cart_session[pid_str]
+            request.session['cart'] = cart_session
+
+    return JsonResponse({'status': 'ok'})
 
 # --- FIN: LÓGICA COMPLETA DEL CARRITO ---
 
@@ -450,6 +542,11 @@ def exclusivos_catalog(request):
     elif sort_order == 'name_asc':
         items = items.order_by('nombre')
 
+    favoritos_ids = []
+    if request.user.is_authenticated:
+        # Si el usuario ha iniciado sesión, buscamos sus favoritos
+        favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
+
     # 5. Obtenemos TODAS las opciones de filtros para poblar los menús
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
@@ -474,6 +571,7 @@ def exclusivos_catalog(request):
         'tipos': tipos_disponibles,
         'generos': generos_disponibles,
         'marcas': marcas_disponibles,
+        'favoritos_ids': favoritos_ids,
     }
 
     return render(request, 'exclusivos_catalog.html', context)
@@ -576,3 +674,44 @@ def order_confirmation(request, order_id):
         'pedido': pedido
     }
     return render(request, 'order_confirmation.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE CHECKOUT CARRITO ---
+
+# --- INICIO: VISTAS PARA FAVORITOS ---
+
+@login_required
+def toggle_favorite(request, producto_id):
+    if request.method == 'POST':
+        producto = get_object_or_404(Producto, pk=producto_id)
+
+        # get_or_create: si el favorito ya existe, lo borramos. Si no, lo creamos.
+        favorito, created = Favorito.objects.get_or_create(usuario=request.user, producto=producto)
+
+        if not created:
+            # Si el favorito ya existía (created=False), lo eliminamos.
+            favorito.delete()
+            is_favorited = False
+        else:
+            # Si se acaba de crear, lo marcamos como favorito.
+            is_favorited = True
+
+        return JsonResponse({'status': 'ok', 'is_favorited': is_favorited})
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
+def favoritos_list(request):
+    """ Muestra la página con todos los productos favoritos del usuario. """
+    favoritos_ids = Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
+    productos_favoritos = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(
+        pk__in=favoritos_ids)
+
+    context = {
+        'productos_favoritos': productos_favoritos,
+        'favoritos_ids': list(favoritos_ids)  # Pasamos la lista de IDs para las tarjetas
+    }
+    return render(request, 'favoritos.html', context)
+
+# --- FIN: VISTAS PARA FAVORITOS ---
+

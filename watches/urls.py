@@ -18,4 +18,6 @@ urlpatterns = [
     path('checkout/', views.checkout_page, name='checkout_page'),
     path('checkout/place_order/', views.place_order, name='place_order'),
     path('pedido/confirmacion/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
+    path('favoritos/', views.favoritos_list, name='favoritos_list'),
+    path('favoritos/toggle/<int:producto_id>/', views.toggle_favorite, name='toggle_favorite'),
 ]
