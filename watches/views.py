@@ -1,5 +1,6 @@
 import os
 import uuid
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
@@ -601,20 +602,26 @@ def checkout_page(request):
     return render(request, 'checkout.html', context)
 
 
+# watches/views.py
+
 @login_required
 def place_order(request):
     if request.method == 'POST':
-        cart = request.session.get('cart', {})
+        # ✅ 1. Obtenemos el carrito ACTIVO del usuario desde la BASE DE DATOS, no de la sesión.
+        cart = _get_user_cart(request)
         domicilio_id = request.POST.get('domicilio_seleccionado')
         metodo_pago = request.POST.get('metodo_pago')
 
-        if not cart or not domicilio_id or not metodo_pago:
+        if not cart or not cart.detallecarrito_set.all() or not domicilio_id or not metodo_pago:
+            messages.error(request, 'Hubo un error con tu pedido. Por favor, intenta de nuevo.')
             return redirect('checkout_page')
 
         domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
-        total_price = sum(item['quantity'] * float(item['price']) for item in cart.values())
 
-        # 1. Crear el Envío
+        # Calculamos el total directamente desde los detalles del carrito en la BDD para máxima seguridad
+        total_price = cart.detallecarrito_set.aggregate(total=Sum('subtotal'))['total'] or 0
+
+        # Crear el Envío
         fecha_envio = timezone.now()
         fecha_llegada = fecha_envio + timedelta(days=7)
         envio = Envio.objects.create(
@@ -623,26 +630,30 @@ def place_order(request):
             fecha_llegada=fecha_llegada
         )
 
-        # 2. Crear el Pedido (CON LA CORRECCIÓN)
+        # Crear el Pedido
         pedido = Pedido.objects.create(
             usuario=request.user,
             envio=envio,
+            carrito=cart,  # ✅ 2. Asociamos el carrito con el pedido
             fecha=timezone.now(),
-            subtotal=total_price,  # ✅ LÍNEA AÑADIDA
+            subtotal=total_price,
             total_pagar=total_price
         )
 
-        # 3. Crear los Detalles del Pedido
-        for pid, item_data in cart.items():
-            producto = get_object_or_404(Producto, pk=pid)
+        # Crear los Detalles del Pedido y DESCONTAR STOCK
+        detalles_del_carrito = cart.detallecarrito_set.all()
+        for item in detalles_del_carrito:
             DetallesPedido.objects.create(
                 pedido=pedido,
-                producto=producto,
-                cantidad=item_data['quantity'],
-                precio_unitario=float(item_data['price'])
+                producto=item.producto,
+                cantidad=item.cantidad,
+                precio_unitario=item.precio_unitario
             )
+            # ✅ 3. Descontamos la cantidad comprada del stock del producto
+            item.producto.stock -= item.cantidad
+            item.producto.save()
 
-        # 4. Crear el Pago
+        # Crear el Pago
         Pago.objects.create(
             pedido=pedido,
             metodo_pago=metodo_pago,
@@ -650,14 +661,14 @@ def place_order(request):
             estado='aprobado'
         )
 
-        # 5. Limpiar el carrito
-        del request.session['cart']
+        # ✅ 4. Actualizamos el estado del carrito a 'convertido'
+        cart.estado = 'convertido'
+        cart.save()
 
-        # 6. Redirigir a confirmación
+        # Redirigir a confirmación
         return redirect('order_confirmation', order_id=pedido.id)
 
     return redirect('home')
-
 
 @login_required
 def order_confirmation(request, order_id):
