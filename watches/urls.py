@@ -20,4 +20,5 @@ urlpatterns = [
     path('pedido/confirmacion/<int:order_id>/', views.order_confirmation, name='order_confirmation'),
     path('favoritos/', views.favoritos_list, name='favoritos_list'),
     path('favoritos/toggle/<int:producto_id>/', views.toggle_favorite, name='toggle_favorite'),
+    path('administracion/devoluciones/', views.gestionar_devoluciones, name='gestionar_devoluciones'),
 ]

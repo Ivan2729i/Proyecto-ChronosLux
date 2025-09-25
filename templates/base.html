@@ -223,6 +223,12 @@
                   <a href="{% url 'domicilio_list' %}" class="block w-full text-center rounded-xl bg-gray-200 text-gray-800 py-2 font-semibold hover:bg-gray-300 transition-colors">
                         Ver mis domicilios
                   </a>
+                  <a href="{% url 'mis_compras' %}" class="block w-full text-center rounded-xl bg-gray-200 text-gray-800 py-2 font-semibold hover:bg-gray-300 transition-colors">
+                        Mis Compras
+                  </a>
+                  <a href="{% url 'mis_devoluciones' %}" class="block w-full text-center rounded-xl bg-gray-200 text-gray-800 py-2 font-semibold hover:bg-gray-300 transition-colors">
+                        Mis Devoluciones
+                  </a>
                   <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
                         <button type="submit" class="w-full rounded-xl bg-gray-900 text-white py-2 font-semibold">
