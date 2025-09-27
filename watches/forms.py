@@ -1,28 +1,24 @@
 import os
 import uuid
 from django import forms
-from .models import Producto, Categoria, ImgProducto
+from .models import Producto, Categoria, ImgProducto, Resena
 import re
 from decimal import Decimal
 
 
 class ProductoForm(forms.ModelForm):
-    # --- 1. Definimos los campos de Categoría por separado ---
 
-    # Creamos un campo de opciones para el género
     genero = forms.ChoiceField(
         choices=[('', '---------'), ('Masculino', 'Masculino'), ('Femenino', 'Femenino'), ('Unisex', 'Unisex')],
         label="Género",
         widget=forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'})
     )
 
-    # Creamos un campo de texto para el material
     material = forms.CharField(
         label="Material",
         widget=forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'})
     )
 
-    # Creamos un campo de opciones para el tipo de reloj
     tipo = forms.ChoiceField(
         choices=[('', '---------')] + Categoria._meta.get_field('tipo').choices,
         label="Tipo de Reloj",
@@ -64,7 +60,7 @@ class ProductoForm(forms.ModelForm):
                 attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md', 'rows': 3}),
         }
 
-        # --- VALIDACIONES PERSONALIZADAS ---
+    # --- VALIDACIONES ---
 
     def clean_nombre(self):
         nombre = self.cleaned_data.get('nombre')
@@ -98,9 +94,24 @@ class ProductoForm(forms.ModelForm):
             except:
                 raise forms.ValidationError("Por favor, introduce un número válido.")
 
-            # Ahora aplicamos la validación del mínimo
             if precio < 100:
                 raise forms.ValidationError("El precio no puede ser negativo, cero o menor a 100.")
         return precio
     #  --- FIN DE VALIDACIÓN ---
 
+# --- INICIO: SECCIÓN DE RESEÑAS ---
+
+class ResenaForm(forms.ModelForm):
+    class Meta:
+        model = Resena
+        fields = ['calificacion', 'comentario']
+        widgets = {
+            'comentario': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Escribe tu opinión sobre el reloj...',
+                'class': 'text-black w-full p-2 border rounded-md'
+            }),
+            'calificacion': forms.HiddenInput(),
+        }
+
+# --- FIN: SECCIÓN DE RESEÑAS ---

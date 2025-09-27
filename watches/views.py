@@ -6,15 +6,16 @@ from django.core.paginator import Paginator
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
 from django.http import JsonResponse
 import json
-from .forms import ProductoForm
+from .forms import ProductoForm, ResenaForm
 from django.db.models import Q, Sum
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.admin.views.decorators import staff_member_required
 from .context_processors import home_page_context
+from django.db.models import Case, When, Value, IntegerField
 
-#arreglar
+
 # --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
 def home(request):
@@ -110,13 +111,43 @@ def catalog(request):
         'favoritos_ids': favoritos_ids,
     })
 
+
 def product_detail(request, producto_id):
     producto = get_object_or_404(
         Producto.objects.select_related('categoria', 'marca', 'imgproducto'),
         pk=producto_id
     )
-    reseñas = Resena.objects.filter(producto=producto).order_by('-fecha')
 
+    mi_resena = None
+    # Lógica del formulario de reseña
+    if request.user.is_authenticated:
+        mi_resena = Resena.objects.filter(producto=producto, usuario=request.user).first()
+        if request.method == 'POST':
+            form = ResenaForm(request.POST, instance=mi_resena)
+            if form.is_valid():
+                resena = form.save(commit=False)
+                resena.usuario = request.user
+                resena.producto = producto
+                resena.fecha = timezone.now()
+                resena.save()
+                return redirect('product_detail', producto_id=producto.id)
+        else:
+            form = ResenaForm(instance=mi_resena)
+    else:
+        form = ResenaForm()
+
+    if request.user.is_authenticated:
+        todas_las_resenas = Resena.objects.filter(producto=producto).annotate(
+            es_mi_resena=Case(
+                When(usuario=request.user, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField()
+            )
+        ).order_by('-es_mi_resena', '-fecha')
+    else:
+        todas_las_resenas = Resena.objects.filter(producto=producto).order_by('-fecha')
+
+    # Lógica para elegir la plantilla
     if producto.es_exclusivo:
         template_name = 'catalog/exclusive_product_detail.html'
     else:
@@ -124,7 +155,9 @@ def product_detail(request, producto_id):
 
     context = {
         'producto': producto,
-        'reseñas': reseñas,
+        'reseñas': todas_las_resenas,
+        'mi_resena': mi_resena,
+        'resena_form': form,
     }
     return render(request, template_name, context)
 
@@ -181,7 +214,6 @@ def add_to_cart(request, producto_id):
                 detalle.subtotal = detalle.cantidad * detalle.precio_unitario
                 detalle.save()
 
-            # Calculamos el total de items directamente desde la base de datos para máxima precisión.
             total_items_query = DetalleCarrito.objects.filter(carrito=cart).aggregate(total=Sum('cantidad'))
             total_items = total_items_query['total'] or 0
     else:
@@ -197,7 +229,6 @@ def add_to_cart(request, producto_id):
         request.session['cart'] = cart_session
         total_items = sum(item['quantity'] for item in cart_session.values())
 
-    # Devolvemos el total para que JavaScript pueda actualizar el ícono.
     return JsonResponse({'status': 'ok', 'total_items': total_items})
 
 def get_cart_data(request):
@@ -223,7 +254,6 @@ def get_cart_data(request):
                 total_price += item.subtotal
                 total_items += item.cantidad
     else:
-        # Lógica para usuarios anónimos (usa la sesión como antes)
         cart_session = request.session.get('cart', {})
         for pid, item_data in cart_session.items():
             subtotal = item_data['quantity'] * float(item_data['price'])
@@ -260,7 +290,6 @@ def update_cart_quantity(request, producto_id):
                 detalle.subtotal = detalle.cantidad * detalle.precio_unitario
                 detalle.save()
         else:
-            # Lógica de sesión (sin cambios)
             cart_session = request.session.get('cart', {})
             pid_str = str(producto_id)
             if pid_str in cart_session:
@@ -280,7 +309,6 @@ def remove_from_cart(request, producto_id):
         cart = _get_user_cart(request)
         DetalleCarrito.objects.filter(carrito=cart, producto_id=producto_id).delete()
     else:
-        # Lógica de sesión (sin cambios)
         cart_session = request.session.get('cart', {})
         pid_str = str(producto_id)
         if pid_str in cart_session:
@@ -325,7 +353,6 @@ def crear_producto(request):
                 nombre_unico = f"{uuid.uuid4()}{extension}"
                 uploaded_image.name = nombre_unico
 
-                # Como el 'producto' ya está guardado, esta línea ahora funcionará
                 ImgProducto.objects.create(producto=producto, url=uploaded_image)
 
             return redirect('admin_dashboard')
@@ -337,14 +364,11 @@ def crear_producto(request):
 
 
 def editar_producto(request, producto_id):
-    # Buscamos el producto que se va a editar, o mostramos un error 404 si no existe
     producto = get_object_or_404(Producto, pk=producto_id)
 
     if request.method == 'POST':
-        # Si el formulario se envía, lo procesamos con los datos nuevos y el producto existente
         form = ProductoForm(request.POST, request.FILES, instance=producto)
         if form.is_valid():
-            # (La lógica de la categoría y la imagen la moveremos aquí también)
             categoria_obj, created = Categoria.objects.get_or_create(
                 genero=form.cleaned_data.get('genero'),
                 material=form.cleaned_data.get('material'),
@@ -355,7 +379,6 @@ def editar_producto(request, producto_id):
             edited_producto.categoria = categoria_obj
             edited_producto.save()
 
-            # Lógica para la imagen (si se sube una nueva)
             uploaded_image = form.cleaned_data.get('imagen')
             if uploaded_image:
                 if producto.imgproducto:
@@ -390,12 +413,9 @@ def eliminar_producto(request, producto_id):
     producto = get_object_or_404(Producto, pk=producto_id)
 
     if request.method == 'POST':
-        # 1. Verificamos si el producto tiene una imagen asociada para evitar errores.
         if hasattr(producto, 'imgproducto'):
-            # 2. Borramos el archivo de imagen del disco.
             producto.imgproducto.url.delete(save=False)
 
-        # 3. Borramos el producto (y el ImgProducto asociado) de la base de datos.
         producto.delete()
 
         return redirect('admin_dashboard')
@@ -410,17 +430,14 @@ def eliminar_producto(request, producto_id):
 # --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS EXCLUSIVE ---
 
 def exclusivos_catalog(request):
-    # 1. Obtenemos solo los productos marcados como exclusivos
     items = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(es_exclusivo=True)
 
-    # 2. Obtenemos los parámetros de filtro de la URL
     tipo_filtro = request.GET.get('type', '').lower()
     precio_filtro = request.GET.get('price', '').lower()
     genero_filtro = request.GET.get('gender', '').lower()
     sort_order = request.GET.get('sort', 'featured').lower()
     marca_filtro = request.GET.get('brand', '').lower()
 
-    # 3. Aplicamos los filtros a la lista de productos
     if tipo_filtro and tipo_filtro != 'all':
         items = items.filter(categoria__tipo__iexact=tipo_filtro)
     if genero_filtro and genero_filtro != 'all':
@@ -435,7 +452,6 @@ def exclusivos_catalog(request):
         elif precio_filtro == 'over_100000':
             items = items.filter(precio__gt=100000)
 
-    # 4. Aplicamos el ordenamiento
     if sort_order == 'price_asc':
         items = items.order_by('precio')
     elif sort_order == 'price_desc':
@@ -445,22 +461,18 @@ def exclusivos_catalog(request):
 
     favoritos_ids = []
     if request.user.is_authenticated:
-        # Si el usuario ha iniciado sesión, buscamos sus favoritos
         favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
 
-    # 5. Obtenemos TODAS las opciones de filtros para poblar los menús
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
     marcas_disponibles = Marca.objects.all().order_by('nombre')
 
-    # 6. Paginación
     paginator = Paginator(items, 12)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
 
-    # 7. Preparamos el contexto completo para la plantilla
     context = {
-        'productos_exclusivos': page_obj,  # La plantilla itera sobre esto
+        'productos_exclusivos': page_obj,
         'querystring': request.GET.urlencode(),
         'current': {
             'type': tipo_filtro or 'all',
@@ -498,12 +510,12 @@ def checkout_page(request):
                 'brand': item.producto.marca.nombre,
                 'quantity': item.cantidad,
                 'price': float(item.precio_unitario),
-                'image_url': item.producto.imgproducto.url.name,  # Pasamos solo el nombre del archivo
+                'image_url': item.producto.imgproducto.url.name,
                 'subtotal': float(item.subtotal)
             })
             total_price += item.subtotal
 
-    # Obtiene los domicilios del usuario (esto ya estaba bien)
+    # Obtiene los domicilios del usuario
     domicilios = Domicilio.objects.filter(usuario=request.user)
 
     context = {
@@ -533,15 +545,13 @@ def place_order(request):
             cantidad_pedida = item.cantidad
 
             if producto.stock < cantidad_pedida:
-                # Si no hay suficiente stock para ALGÚN producto, detenemos todo.
                 messages.error(
                     request,
                     f"No hay suficiente stock para '{producto.nombre}'. "
                     f"Cantidad disponible: {producto.stock}."
                 )
-                return redirect('checkout_page')  # Devolvemos al usuario al checkout
+                return redirect('checkout_page')
 
-        # Si pasamos la verificación, el resto del código se ejecuta como antes...
         domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
         total_price = detalles_del_carrito.aggregate(total=Sum('subtotal'))['total'] or 0
 
@@ -609,15 +619,12 @@ def toggle_favorite(request, producto_id):
     if request.method == 'POST':
         producto = get_object_or_404(Producto, pk=producto_id)
 
-        # get_or_create: si el favorito ya existe, lo borramos. Si no, lo creamos.
         favorito, created = Favorito.objects.get_or_create(usuario=request.user, producto=producto)
 
         if not created:
-            # Si el favorito ya existía (created=False), lo eliminamos.
             favorito.delete()
             is_favorited = False
         else:
-            # Si se acaba de crear, lo marcamos como favorito.
             is_favorited = True
 
         return JsonResponse({'status': 'ok', 'is_favorited': is_favorited})
@@ -627,14 +634,13 @@ def toggle_favorite(request, producto_id):
 
 @login_required
 def favoritos_list(request):
-    """ Muestra la página con todos los productos favoritos del usuario. """
     favoritos_ids = Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
     productos_favoritos = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(
         pk__in=favoritos_ids)
 
     context = {
         'productos_favoritos': productos_favoritos,
-        'favoritos_ids': list(favoritos_ids)  # Pasamos la lista de IDs para las tarjetas
+        'favoritos_ids': list(favoritos_ids)
     }
     return render(request, 'favoritos.html', context)
 
@@ -644,7 +650,6 @@ def favoritos_list(request):
 
 @staff_member_required
 def gestionar_devoluciones(request):
-    # Si se envió un formulario para cambiar el estado de una devolución
     if request.method == 'POST':
         devolucion_id = request.POST.get('devolucion_id')
         nuevo_estado = request.POST.get('nuevo_estado')
@@ -655,7 +660,6 @@ def gestionar_devoluciones(request):
             devolucion.save()
             return redirect('gestionar_devoluciones')
 
-    # Obtenemos todas las devoluciones para mostrarlas en la tabla
     lista_devoluciones = Devolucion.objects.select_related('pedido__usuario').all().order_by('-fecha_devolucion')
 
     context = {

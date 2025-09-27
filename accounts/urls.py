@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from .views import HomeLoginView, signup, domicilio_list, domicilio_create, domicilio_edit, domicilio_delete, mis_compras, solicitar_devolucion, mis_devoluciones
 
@@ -13,4 +13,5 @@ urlpatterns = [
     path('mis-compras/', mis_compras, name='mis_compras'),
     path('mis-compras/devolucion/<int:pedido_id>/', solicitar_devolucion, name='solicitar_devolucion'),
     path('mis-devoluciones/', mis_devoluciones, name='mis_devoluciones'),
+    path('', include('django.contrib.auth.urls')),
 ]

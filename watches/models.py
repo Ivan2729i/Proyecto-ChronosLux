@@ -160,7 +160,7 @@ class Pago(models.Model):
 
 
 class Resena(models.Model):
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     calificacion = models.IntegerField()
     comentario = models.TextField(blank=True, null=True)

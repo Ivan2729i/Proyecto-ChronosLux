@@ -40,7 +40,6 @@ class HomeLoginView(auth_views.LoginView):
         return ctx
 
     def form_invalid(self, form):
-        # Muy importante: pasar el form con errores como login_form
         ctx = self.get_context_data(form=form)
         ctx['login_form'] = form
         ctx['open_auth_modal'] = True
@@ -82,7 +81,6 @@ def signup(request):
 
 @login_required
 def domicilio_list(request):
-    # Buscamos solo los domicilios que pertenecen al usuario actual
     domicilios = Domicilio.objects.filter(usuario=request.user)
 
     context = {
@@ -96,12 +94,10 @@ def domicilio_create(request):
     if request.method == 'POST':
         form = DomicilioForm(request.POST)
         if form.is_valid():
-            # Guardamos el formulario pero sin commit para poder modificarlo
             domicilio = form.save(commit=False)
-            # Asignamos el usuario actual al campo 'usuario' del domicilio
             domicilio.usuario = request.user
-            domicilio.save()  # Ahora sí, guardamos en la base de datos
-            return redirect('domicilio_list')  # Redirigimos a la lista de domicilios
+            domicilio.save()
+            return redirect('domicilio_list')
     else:
         form = DomicilioForm()
 
@@ -112,16 +108,14 @@ def domicilio_create(request):
 
 @login_required
 def domicilio_edit(request, domicilio_id):
-    # Busca el domicilio específico, asegurándo de que le pertenezca al usuario actual
     domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
 
     if request.method == 'POST':
         form = DomicilioForm(request.POST, instance=domicilio)
         if form.is_valid():
             form.save()
-            return redirect('domicilio_list')  # Redirige a la lista de domicilios
+            return redirect('domicilio_list')
     else:
-        # Muestra el formulario con los datos actuales del domicilio
         form = DomicilioForm(instance=domicilio)
 
     context = {
@@ -141,6 +135,8 @@ def domicilio_delete(request, domicilio_id):
         'domicilio': domicilio
     }
     return render(request, 'home/domicilio_delete_confirm.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE REGISTRO DOMICILIOS ---
 
 # --- INICIO: LÓGICA COMPLETA DE MIS COMPRAS ---
 
@@ -192,7 +188,7 @@ def solicitar_devolucion(request, pedido_id):
                 imagen_devolucion.name = nombre_unico
                 devolucion.url_img_prod_devuelto = imagen_devolucion
 
-            devolucion.save()  # Guardamos la devolución con la imagen
+            devolucion.save()
 
             messages.success(request, f'Tu solicitud de devolución para el pedido #{pedido.id} ha sido enviada.')
             return redirect('mis_compras')

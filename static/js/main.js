@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Initialize Lucide icons (solo una vez)
+    // Initialize Lucide icons
     const lucide = window.lucide;
     if (lucide) {
         lucide.createIcons();
     }
 
-    // Tailwind configuration (se queda igual)
+    // Tailwind configuration
     tailwind.config = {
         theme: {
             extend: {
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- LÓGICA DEL MENÚ MÓVIL (SE QUEDA IGUAL) ---
+    // --- LÓGICA DEL MENÚ MÓVIL ---
     document.getElementById('mobile-menu-btn').addEventListener('click', function() {
         const menu = document.getElementById('mobile-menu');
         const icon = this.querySelector('i');
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const checkoutBtn = document.getElementById('checkout-btn');
             if (!cartItemsContainer || !cartTotalEl || !checkoutBtn) return;
 
-            cartItemsContainer.innerHTML = ''; // Limpiamos el contenido
+            cartItemsContainer.innerHTML = '';
 
             if (data.cart_items.length === 0) {
                 cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center">Tu carrito está vacío</p>';
@@ -173,6 +173,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // --- LÓGICA DEL MODAL DE USUARIO ---
+
     const userIconBtn = document.getElementById('user-icon-btn');
     const userModal = document.getElementById('user-modal');
     const closeModal = document.getElementById('close-modal');
@@ -219,6 +220,60 @@ document.addEventListener("DOMContentLoaded", () => {
             switchTextRegister.classList.remove('hidden');
         });
     }
+
+    // --- FIN LÓGICA DEL MODAL DE USUARIO ---
+
+    //  --- INICIO: CÓDIGO DE RESEÑAS ---
+
+    const starRatingContainer = document.getElementById('star-rating');
+    if (starRatingContainer) {
+        const ratingInput = document.getElementById('id_calificacion');
+
+        const paintStars = (rating) => {
+            const stars = starRatingContainer.querySelectorAll('[data-lucide="star"]');
+
+            stars.forEach(star => {
+                const starValue = parseInt(star.dataset.value, 10);
+                if (starValue <= rating) {
+                    star.classList.add('fill-yellow-400', 'text-yellow-400');
+                    star.classList.remove('text-gray-300');
+                } else {
+                    star.classList.remove('fill-yellow-400', 'text-yellow-400');
+                    star.classList.add('text-gray-300');
+                }
+            });
+        };
+
+        // Evento de clic en una estrella
+        starRatingContainer.addEventListener('click', function(e) {
+            const star = e.target.closest('[data-lucide="star"]');
+            if (star) {
+                const ratingValue = star.dataset.value;
+                if (ratingInput) ratingInput.value = ratingValue;
+                paintStars(ratingValue);
+            }
+        });
+
+        // Evento para restaurar las estrellas al último valor guardado
+        starRatingContainer.addEventListener('mouseout', function() {
+            if (ratingInput) paintStars(ratingInput.value || 0);
+        });
+
+        // Evento para pre-iluminar al pasar el mouse
+        starRatingContainer.addEventListener('mouseover', function(e) {
+            const star = e.target.closest('[data-lucide="star"]');
+            if (star) {
+                paintStars(star.dataset.value);
+            }
+        });
+
+        // Pintar el estado inicial al cargar la página
+        if (ratingInput) {
+            paintStars(ratingInput.value || 0);
+        }
+    }
+
+    // --- FIN: CÓDIGO DE RESEÑAS ---
 });
 
 // Fallback robusto para abrir/cerrar el modal por delegación
