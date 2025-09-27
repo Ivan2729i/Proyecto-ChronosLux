@@ -12,104 +12,16 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.admin.views.decorators import staff_member_required
+from .context_processors import home_page_context
 
-
-def build_home_context():
-    featured_watches = [
-        {
-            'id': 1,
-            'name': 'Submariner Date',
-            'brand': 'Rolex',
-            "type": "Deportivo",
-            'price': 12500,
-            'image': '/static/img/rolex-submariner.jpg',
-            'rating': 4.9,
-            'features': ['Resistente al agua 300m', 'Movimiento automático', 'Cristal de zafiro']
-        },
-        {
-            'id': 2,
-            'name': 'Speedmaster Professional',
-            'brand': 'Omega',
-            "type": "Casual",
-            'price': 6800,
-            'image': '/placeholder.svg?height=400&width=400',
-            'rating': 4.9,
-            'features': ['Cronógrafo manual', 'Certificado por la NASA', 'Resistente a campos magnéticos']
-        },
-        {
-            'id': 3,
-            'name': 'Royal Oak',
-            'brand': 'Audemars Piguet',
-            'price': 28000,
-            'image': '/placeholder.svg?height=400&width=400',
-            'rating': 5.0,
-            'features': ['Caja octagonal icónica', 'Movimiento ultra-delgado', 'Acabado artesanal']
-        }
-    ]
-
-    catalog_watches = [
-        {
-            'id': 4,
-            'name': 'Datejust 36',
-            'brand': 'Rolex',
-            'price': 8900,
-            'image': '/static/img/placeholder.jpg',
-            'rating': 4.8,
-            'features': ['Acero y oro', 'Fecha instantánea', 'Movimiento perpetuo']
-        },
-        {
-            'id': 5,
-            'name': 'Seamaster Planet Ocean',
-            'brand': 'Omega',
-            'price': 5200,
-            'image': '/placeholder.svg?height=300&width=300',
-            'rating': 4.7,
-            'features': ['Resistente al agua 600m', 'Bisel unidireccional', 'Co-Axial Master Chronometer']
-        },
-        {
-            'id': 6,
-            'name': 'Millenary',
-            'brand': 'Audemars Piguet',
-            'price': 22000,
-            'image': '/placeholder.svg?height=300&width=300',
-            'rating': 4.9,
-            'features': ['Caja ovalada', 'Movimiento visible', 'Edición limitada']
-        },
-        {
-            'id': 7,
-            'name': 'GMT-Master II',
-            'brand': 'Rolex',
-            'price': 15200,
-            'image': '/placeholder.svg?height=300&width=300',
-            'rating': 5.0,
-            'features': ['Doble zona horaria', 'Bisel Pepsi', 'Movimiento GMT']
-        },
-        {
-            'id': 8,
-            'name': 'De Ville Prestige',
-            'brand': 'Omega',
-            'price': 3800,
-            'image': '/placeholder.svg?height=300&width=300',
-            'rating': 4.6,
-            'features': ['Diseño clásico', 'Movimiento Co-Axial', 'Caja delgada']
-        },
-        {
-            'id': 1,
-            'name': 'Submariner Date',
-            'brand': 'Rolex',
-            "type": "Deportivo",
-            "gender": "Hombre",
-            'price': 12500,
-            'image': '/static/img/rolex-submariner.jpg',
-            'rating': 4.9,
-            'features': ['Resistente al agua 300m', 'Movimiento automático', 'Cristal de zafiro']
-        },
-    ]
-
-    return {'featured_watches': featured_watches, 'catalog_watches': catalog_watches}
+#arreglar
+# --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
 def home(request):
-    return render(request, 'home.html', build_home_context())
+    context = home_page_context(request)
+    return render(request, 'home.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
 # --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS NORMALES ---
 
@@ -496,6 +408,7 @@ def eliminar_producto(request, producto_id):
 # --- FIN: LÓGICA COMPLETA DE ADMIN ---
 
 # --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS EXCLUSIVE ---
+
 def exclusivos_catalog(request):
     # 1. Obtenemos solo los productos marcados como exclusivos
     items = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(es_exclusivo=True)
@@ -573,7 +486,6 @@ def checkout_page(request):
     cart_items = []
     total_price = 0
 
-    # ✅ Usa la función auxiliar para obtener el carrito de la base de datos
     cart = _get_user_cart(request)
     if cart:
         # Obtiene todos los detalles de ese carrito
@@ -603,12 +515,9 @@ def checkout_page(request):
     return render(request, 'checkout.html', context)
 
 
-# watches/views.py
-
 @login_required
 def place_order(request):
     if request.method == 'POST':
-        # ✅ 1. Obtenemos el carrito ACTIVO del usuario desde la BASE DE DATOS, no de la sesión.
         cart = _get_user_cart(request)
         domicilio_id = request.POST.get('domicilio_seleccionado')
         metodo_pago = request.POST.get('metodo_pago')
@@ -617,10 +526,24 @@ def place_order(request):
             messages.error(request, 'Hubo un error con tu pedido. Por favor, intenta de nuevo.')
             return redirect('checkout_page')
 
-        domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+        #  --- VERIFICACIÓN DE STOCK ---
+        detalles_del_carrito = cart.detallecarrito_set.all()
+        for item in detalles_del_carrito:
+            producto = item.producto
+            cantidad_pedida = item.cantidad
 
-        # Calculamos el total directamente desde los detalles del carrito en la BDD para máxima seguridad
-        total_price = cart.detallecarrito_set.aggregate(total=Sum('subtotal'))['total'] or 0
+            if producto.stock < cantidad_pedida:
+                # Si no hay suficiente stock para ALGÚN producto, detenemos todo.
+                messages.error(
+                    request,
+                    f"No hay suficiente stock para '{producto.nombre}'. "
+                    f"Cantidad disponible: {producto.stock}."
+                )
+                return redirect('checkout_page')  # Devolvemos al usuario al checkout
+
+        # Si pasamos la verificación, el resto del código se ejecuta como antes...
+        domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+        total_price = detalles_del_carrito.aggregate(total=Sum('subtotal'))['total'] or 0
 
         # Crear el Envío
         fecha_envio = timezone.now()
@@ -635,14 +558,13 @@ def place_order(request):
         pedido = Pedido.objects.create(
             usuario=request.user,
             envio=envio,
-            carrito=cart,  # ✅ 2. Asociamos el carrito con el pedido
+            carrito=cart,
             fecha=timezone.now(),
             subtotal=total_price,
             total_pagar=total_price
         )
 
         # Crear los Detalles del Pedido y DESCONTAR STOCK
-        detalles_del_carrito = cart.detallecarrito_set.all()
         for item in detalles_del_carrito:
             DetallesPedido.objects.create(
                 pedido=pedido,
@@ -650,7 +572,6 @@ def place_order(request):
                 cantidad=item.cantidad,
                 precio_unitario=item.precio_unitario
             )
-            # ✅ 3. Descontamos la cantidad comprada del stock del producto
             item.producto.stock -= item.cantidad
             item.producto.save()
 
@@ -662,7 +583,7 @@ def place_order(request):
             estado='aprobado'
         )
 
-        # ✅ 4. Actualizamos el estado del carrito a 'convertido'
+        # Actualizamos el estado del carrito a 'convertido'
         cart.estado = 'convertido'
         cart.save()
 
@@ -742,3 +663,4 @@ def gestionar_devoluciones(request):
     }
     return render(request, 'admin/gestionar_devoluciones.html', context)
 
+# --- FIN: LÓGICA COMPLETA DE MIS DEVOLUCIONES ADMIN ---

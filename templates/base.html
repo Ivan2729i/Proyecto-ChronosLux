@@ -24,10 +24,8 @@
         <div class="container mx-auto px-4">
             <div class="flex items-center justify-between h-16">
                 <a href="{% url 'home' %}" class="flex items-center space-x-2">
-                    <div class="w-8 h-8 custom-bg-secondary rounded-full flex items-center justify-center">
-                        <span class="custom-text-secondary-foreground font-serif font-black text-sm">C</span>
-                    </div>
-                    <span class="font-serif font-black text-xl">ChronosLux</span>
+                    <img src="{% static 'img/logo-chronoslux.png' %}" alt="ChronosLux Logo" class="w-20 h-11">
+                    <span class="font-serif font-black text-xl custom-text-brand-gold">ChronosLux</span>
                 </a>
 
                 <nav class="hidden md:flex items-center space-x-8">
@@ -104,10 +102,8 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div class="md:col-span-2">
                     <div class="flex items-center space-x-2 mb-6">
-                        <div class="w-10 h-10 custom-bg-secondary rounded-full flex items-center justify-center">
-                            <span class="custom-text-secondary-foreground font-serif font-black text-lg">C</span>
-                        </div>
-                        <span class="font-serif font-black text-2xl">ChronosLux</span>
+                        <img src="{% static 'img/logo-chronoslux.png' %}" alt="ChronosLux Logo" class="w-20 h-auto">
+                        <span class="font-serif font-black text-2xl custom-text-brand-gold">ChronosLux</span>
                     </div>
                     <p class="text-gray-300 leading-relaxed mb-6 max-w-md">
                         Más de 50 años de experiencia en relojería de lujo. Somos especialistas en las marcas más prestigiosas del mundo.
@@ -127,10 +123,10 @@
                 <div>
                     <h3 class="font-serif font-bold text-lg mb-4">Enlaces Rápidos</h3>
                     <ul class="space-y-2 text-gray-300">
-                        <li><a href="{% url 'home' %}" class="hover:text-secondary transition-colors">Inicio</a></li>
-                        <li><a href="{% url 'catalog' %}" class="hover:text-secondary transition-colors">Catálogo</a></li>
-                        <li><a href="{% url 'exclusivos_catalog' %}" class="hover:text-secondary transition-colors">Exclusivos</a></li>
-                        <li><a href="#contact" class="hover:text-secondary transition-colors">Contacto</a></li>
+                        <li><a href="{% url 'home' %}" class="nav-link hover:text-secondary transition-colors">Inicio</a></li>
+                        <li><a href="{% url 'catalog' %}" class="nav-link hover:text-secondary transition-colors">Catálogo</a></li>
+                        <li><a href="{% url 'exclusivos_catalog' %}" class="nav-link hover:text-secondary transition-colors">Exclusivos</a></li>
+                        <li><a href="#contact" class="nav-link hover:text-secondary transition-colors">Contacto</a></li>
                         {% if user.is_authenticated and user.is_staff %}
                         <li class="nav-item">
                             <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
@@ -143,7 +139,7 @@
                     <ul class="space-y-2 text-gray-300">
                         <li class="flex items-center space-x-2">
                             <i data-lucide="phone" class="w-4 h-4"></i>
-                            <span>+1 (555) 123-4567</span>
+                            <span>+52 (229) 123-4567</span>
                         </li>
                         <li class="flex items-center space-x-2">
                             <i data-lucide="mail" class="w-4 h-4"></i>
@@ -183,7 +179,7 @@
                 </div>
                 <a href="{% url 'checkout_page' %}"
                    id="checkout-btn"
-                   class="block text-center w-full py-3 custom-bg-primary custom-text-primary-foreground font-semibold rounded-md hover:bg-primary/90 transition-colors">
+                   class="btn-animado block text-center w-full text-white bg-blue-900 hover:bg-blue-800 py-3 font-semibold rounded-md transition-colors">
                     Proceder al Pago
                 </a>
             </div>
@@ -200,8 +196,8 @@
       <!-- Contenedor -->
       <div id="auth-dialog" class="relative mx-auto mt-24 w-full max-w-lg rounded-2xl bg-white shadow-xl">
         <div class="flex items-center justify-between border-b p-4">
-          <h2 id="auth-modal-title" class="text-2xl font-bold">
-            {% if user.is_authenticated %}Mi cuenta{% else %}Inicio de sesión{% endif %}
+          <h2 id="auth-modal-title" class="font-serif font-black text-3xl custom-text-foreground">
+              {% if user.is_authenticated %}Mi cuenta{% else %}Inicio de sesión{% endif %}
           </h2>
           <button id="close-modal" aria-label="Cerrar" class="p-2 hover:bg-gray-100 rounded-lg">✕</button>
         </div>
@@ -210,7 +206,7 @@
         <div class="p-6 space-y-10 max-h-[75vh] overflow-y-auto">
 
           {% if user.is_authenticated %}
-            <!-- PANE: PERFIL AUTENTICADO -->
+            <!-- PANEL: PERFIL AUTENTICADO -->
             <div id="profile-pane">
               <div class="space-y-2 mb-4">
                 <p class="text-sm text-gray-500">Nombre</p>

@@ -4,7 +4,9 @@
 {% block content %}
 <div class="container mx-auto text-center py-20">
     <i data-lucide="check-circle" class="w-16 h-16 mx-auto text-green-500 mb-4"></i>
-    <h1 class="text-3xl font-bold mb-2">¡Gracias por tu compra!</h1>
+    <h1 class="font-serif font-black text-4xl md:text-4xl custom-text-foreground mb-4 text-center">
+         ¡Gracias por <span class="custom-text-secondary">tu compra!</span>
+    </h1>
     <p class="text-gray-600 mb-6">Tu pedido ha sido realizado con éxito.</p>
     <p class="text-lg">Tu número de pedido es: <strong class="font-mono custom-text-secondary">#{{ pedido.id }}</strong></p>
     <div class="mt-8">

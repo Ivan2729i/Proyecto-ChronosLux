@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+{% load static %}
+{% load humanize %}
+
 {% block content %}
 <div class="min-h-screen">
     <section id="home" class="custom-bg-hero relative h-screen flex items-center justify-center overflow-hidden">
@@ -20,9 +23,10 @@
                    class="btn-animado px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
                     Explorar Colección
                 </a>
-                <button class="btn-animado-outline px-8 py-3 border-2 border-custom-primary-foreground custom-text-primary-foreground font-semibold rounded-md hover:bg-primary-foreground hover:text-primary transition-colors">
+                <a href="{% url 'exclusivos_catalog' %}"
+                   class="btn-animado-outline px-8 py-3 border-2 border-custom-primary-foreground custom-text-primary-foreground font-semibold rounded-md hover:bg-primary-foreground hover:text-primary transition-colors">
                     Relojes Exclusivos
-                </button>
+                </a>
             </div>
         </div>
     </section>
@@ -40,40 +44,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {% for watch in featured_watches %}
-                <div class="group bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                    <div class="aspect-square overflow-hidden">
-                        <img src="{{ watch.image }}" alt="{{ watch.brand }} {{ watch.name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                    </div>
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-sm font-semibold custom-text-secondary uppercase tracking-wider">{{ watch.brand }}</span>
-                            <div class="flex items-center space-x-1">
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= watch.rating %}
-                                        <i data-lucide="star" class="w-4 h-4 fill-custom-secondary custom-text-secondary"></i>
-                                    {% else %}
-                                        <i data-lucide="star" class="w-4 h-4 text-gray-300"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <h3 class="font-serif font-bold text-xl custom-text-foreground mb-3">{{ watch.name }}</h3>
-                        <ul class="text-sm custom-text-muted-foreground mb-4 space-y-1">
-                            {% for feature in watch.features %}
-                            <li class="flex items-center">
-                                <i data-lucide="check" class="w-3 h-3 custom-text-secondary mr-2"></i>
-                                {{ feature }}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        <div class="flex items-center justify-between">
-                            <span class="font-serif font-black text-2xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
-                            <button class="btn-animado add-to-cart px-4 py-2 custom-bg-secondary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
-                                Agregar al Carrito
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                  {% include 'catalog/_product_card.html' with watch=watch %}
                 {% endfor %}
             </div>
         </div>
@@ -92,52 +63,24 @@
                    class="mt-6 inline-block btn-animado px-8 py-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md hover:bg-secondary/90 transition-colors">
                    Ver nuestro Catálogo Completo
                 </a>
-
             </div>
 
             <div class="flex flex-wrap gap-4 justify-center mb-12">
                 <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="all">
                     Todos
                 </button>
-                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="rolex">
-                    Rolex
+                {% for marca in marcas %}
+                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="{{ marca.nombre|lower|cut:' ' }}">
+                    {{ marca.nombre }}
                 </button>
-                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="omega">
-                    Omega
-                </button>
-                <button class="btn-animado filter-btn px-6 py-2 rounded-full border-2 border-custom-primary custom-text-primary hover:bg-primary hover:text-primary-foreground font-medium transition-colors" data-filter="audemars">
-                    Audemars Piguet
-                </button>
+                {% endfor %}
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {% for watch in catalog_watches %}
-                <div class="watch-item group bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1" data-brand="{{ watch.brand|lower|cut:' ' }}">
-                    <div class="aspect-square overflow-hidden">
-                        <img src="{{ watch.image }}" alt="{{ watch.brand }} {{ watch.name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-                    </div>
-                    <div class="p-4">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-semibold custom-text-secondary uppercase tracking-wider">{{ watch.brand }}</span>
-                            <div class="flex items-center space-x-1">
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= watch.rating %}
-                                        <i data-lucide="star" class="w-3 h-3 fill-custom-secondary custom-text-secondary"></i>
-                                    {% else %}
-                                        <i data-lucide="star" class="w-3 h-3 text-gray-300"></i>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        </div>
-                        <h3 class="font-serif font-bold text-lg custom-text-foreground mb-2">{{ watch.name }}</h3>
-                        <div class="flex items-center justify-between">
-                            <span class="font-serif font-black text-xl custom-text-foreground">${{ watch.price|floatformat:0 }}</span>
-                            <button class="btn-animado hover:text-primary-foreground add-to-cart p-2 custom-bg-primary custom-text-primary-foreground rounded-md hover:bg-primary/90 transition-colors" data-watch-id="{{ watch.id }}" data-watch-name="{{ watch.name }}" data-watch-brand="{{ watch.brand }}" data-watch-price="{{ watch.price }}" data-watch-image="{{ watch.image }}">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                  <div class="watch-item" data-brand="{{ watch.marca.nombre|lower|cut:' ' }}">
+                    {% include 'catalog/_product_card.html' with watch=watch %}
+                  </div>
                 {% endfor %}
             </div>
         </div>
@@ -147,7 +90,7 @@
         <div class="container">
             <div class="exclusive-header">
                 <div class="exclusive-icon-title">
-                    <img src="/static/img/crown.png" alt="Corona" class="exclusive-img-large">
+                    <img src="{% static 'img/crown.png' %}" alt="Corona" class="exclusive-img-large">
                 </div>
                 <h2 class="exclusive-title">
                     Colección <span class="custom-text-secondary">Exclusiva</span>
@@ -161,7 +104,7 @@
                 <div class="exclusive-left">
                     <div class="exclusive-item">
                         <div class="exclusive-icon">
-                            <img src="/static/img/diamond.png" alt="Diamante" class="exclusive-img">
+                            <img src="{% static 'img/diamond.png' %}" alt="Diamante" class="exclusive-img">
                         </div>
                         <div>
                             <h3 class="exclusive-item-title">Materiales Excepcionales</h3>
@@ -173,7 +116,7 @@
 
                     <div class="exclusive-item">
                         <div class="exclusive-icon">
-                            <img src="/static/img/exclusive.png" alt="Exclusivo" class="exclusive-img">
+                            <img src="{% static 'img/exclusive.png' %}" alt="Exclusivo" class="exclusive-img">
                         </div>
                         <div>
                             <h3 class="exclusive-item-title">Ediciones Limitadas</h3>
@@ -185,7 +128,7 @@
 
                     <div class="exclusive-item">
                         <div class="exclusive-icon">
-                            <img src="/static/img/crown.png" alt="Corona" class="exclusive-img">
+                            <img src="{% static 'img/crown.png' %}" alt="Corona" class="exclusive-img">
                         </div>
                         <div>
                             <h3 class="exclusive-item-title">Artesanía Suiza</h3>
@@ -195,30 +138,37 @@
                         </div>
                     </div>
 
-                    <button class="exclusive-btn btn-animado">
-                        Solicitar Catálogo Exclusivo
-                    </button>
+                    <a href="{% url 'exclusivos_catalog' %}" class="exclusive-btn btn-animado">
+                        Ver Catálogo Exclusivo
+                    </a>
                 </div>
 
+                {% if exclusive_watch %}
                 <div class="exclusive-card">
-                    <div class="exclusive-badge">Edición Limitada</div>
-                    <img src="/static/img/rolex-oro.jpg" alt="Royal Diamond Collection" class="exclusive-card-img">
+                    <div class="exclusive-badge">Exclusivo</div>
+
+                    <img src="{{ exclusive_watch.imgproducto.url.url }}" alt="{{ exclusive_watch.nombre }}" class="exclusive-card-img">
+
                     <div class="exclusive-card-text">
-                        <h3 class="exclusive-card-title">Royal Diamond Collection</h3>
-                        <p class="exclusive-card-subtitle">Solo 50 piezas en el mundo</p>
+                        <h3 class="exclusive-card-title">{{ exclusive_watch.nombre }}</h3>
+                        <p class="exclusive-card-subtitle">{{ exclusive_watch.marca.nombre }}</p>
                     </div>
+
                     <ul class="exclusive-list">
-                        <li>127 diamantes certificados</li>
-                        <li>Caja de oro rosa 18K</li>
-                        <li>Movimiento perpetuo suizo</li>
-                        <li>Garantía de por vida</li>
+                        {% if exclusive_watch.descripcion1 %}<li>{{ exclusive_watch.descripcion1 }}</li>{% endif %}
+                        {% if exclusive_watch.descripcion2 %}<li>{{ exclusive_watch.descripcion2 }}</li>{% endif %}
+                        {% if exclusive_watch.descripcion3 %}<li>{{ exclusive_watch.descripcion3 }}</li>{% endif %}
                     </ul>
+
                     <div class="exclusive-footer">
-                        <span class="exclusive-price">$85,000</span>
-                        <button class="exclusive-btn btn-animado">Consultar Disponibilidad</button>
+                        <span class="exclusive-price">${{ exclusive_watch.precio|floatformat:0|intcomma }}</span>
+                        <a href="{% url 'product_detail' producto_id=exclusive_watch.id %}" class="exclusive-btn btn-animado">
+                            Ver Detalles
+                        </a>
                     </div>
                 </div>
-            </div>
+                {% endif %}
+                </div>
         </div>
     </section>
 </div>

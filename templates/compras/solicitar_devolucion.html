@@ -3,10 +3,12 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-12 max-w-3xl">
-  <h1 class="text-3xl font-bold text-center mb-2">Solicitar Devolución</h1>
-  <p class="text-center text-gray-500 mb-8">Pedido #{{ pedido.id }}</p>
+  <h1 class="font-serif font-black text-4xl md:text-4xl custom-text-foreground mb-4 text-center">
+        Solicitar <span class="custom-text-secondary">Devolución</span>
+  </h1>
+  <p class="text-center text-gray-500 mb-8 text-lg">Pedido #{{ pedido.id }}</p>
 
-  <form method="post" class="bg-white p-6 rounded-lg shadow-md border">
+  <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md border">
     {% csrf_token %}
 
     <div class="mb-6">
@@ -30,11 +32,17 @@
       <textarea name="motivo_devolucion" id="motivo_devolucion" rows="4" required class="w-full p-2 border border-gray-300 rounded-md" placeholder="Ej: El producto llegó dañado, no es lo que esperaba, etc."></textarea>
     </div>
 
-    <div class="flex justify-end gap-4">
-      <a href="{% url 'mis_compras' %}" class="px-6 py-2 text-gray-800 bg-gray-200 rounded-md hover:bg-gray-300 font-semibold">
+    <div class="mb-6">
+      <label for="imagen_devolucion" class="block text-xl font-semibold mb-2">Adjuntar foto (opcional)</label>
+      <input type="file" name="imagen_devolucion" id="imagen_devolucion" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+    </div>
+
+    <div class="flex justify-end gap-5">
+      <a href="{% url 'mis_compras' %}"
+         class="btn-animado bg-gray-200 text-gray-800 hover:bg-gray-300 hover:text-gray-900 font-semibold rounded-md">
         Cancelar
       </a>
-      <button type="submit" class="px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 font-semibold">
+      <button type="submit" class="btn-animado px-6 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 font-semibold">
         Enviar Solicitud
       </button>
     </div>
