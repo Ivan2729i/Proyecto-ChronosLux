@@ -2,18 +2,22 @@ from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
-from watches.models import Domicilio, Pedido, DetallesPedido , Devolucion
+from watches.models import Domicilio, Pedido, DetallesPedido , Devolucion, Producto, Marca, Favorito
 from .forms import EmailAuthenticationForm, SignupForm
-from watches.views import build_home_context
 from django.contrib.auth.decorators import login_required
 from .forms import DomicilioForm
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib import messages
+import uuid
+import os
+from watches.context_processors import home_page_context
 
 
 
 User = get_user_model()
+
+# --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
 class HomeLoginView(auth_views.LoginView):
     template_name = 'registration/login.html'
@@ -22,7 +26,7 @@ class HomeLoginView(auth_views.LoginView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         # Portada detrás
-        ctx.update(build_home_context())
+        ctx.update(home_page_context(self.request))
 
         if 'form' in ctx:
             ctx['login_form'] = ctx['form']
@@ -57,7 +61,7 @@ def signup(request):
             return redirect('home')
 
         # POST inválido: usar form LIGADO con errores como signup_form
-        ctx = build_home_context()
+        ctx = home_page_context(request)
         ctx['signup_form'] = form
         ctx['login_form'] = EmailAuthenticationForm(request)
         ctx['open_auth_modal'] = True
@@ -65,13 +69,14 @@ def signup(request):
         return render(request, 'registration/signup.html', ctx)
 
     # GET normal: formularios limpios
-    ctx = build_home_context()
+    ctx = home_page_context(request)
     ctx['signup_form'] = SignupForm()
     ctx['login_form'] = EmailAuthenticationForm(request)
     ctx['open_auth_modal'] = True
     ctx['auth_active_tab'] = 'signup'
     return render(request, 'registration/signup.html', ctx)
 
+# --- FIN: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
 # --- INICIO: LÓGICA COMPLETA DE REGISTRO DOMICILIOS ---
 
@@ -137,65 +142,67 @@ def domicilio_delete(request, domicilio_id):
     }
     return render(request, 'home/domicilio_delete_confirm.html', context)
 
-# --- INICIO: LÓGICA COMPLETA DE MIS PRODUCTOS ---
+# --- INICIO: LÓGICA COMPLETA DE MIS COMPRAS ---
 
 @login_required
 def mis_compras(request):
-    # Buscamos todos los pedidos del usuario actual, ordenados del más reciente al más antiguo
     pedidos = Pedido.objects.filter(usuario=request.user).order_by('-fecha')
 
-    # Calculamos la fecha límite para devoluciones (hoy menos 90 días)
+    pedidos_con_devolucion = Devolucion.objects.filter(pedido__in=pedidos).values_list('pedido_id', flat=True)
+
     fecha_limite_devolucion = timezone.now() - timedelta(days=90)
 
     context = {
         'pedidos': pedidos,
-        'fecha_limite_devolucion': fecha_limite_devolucion
+        'fecha_limite_devolucion': fecha_limite_devolucion,
+        'pedidos_con_devolucion': list(pedidos_con_devolucion)
     }
     return render(request, 'compras/mis_compras.html', context)
 
-
 @login_required
 def solicitar_devolucion(request, pedido_id):
-    # Buscamos el pedido, asegurándonos que le pertenezca al usuario actual
     pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user)
 
-    # Verificamos si el pedido todavía está dentro del periodo de 90 días para devolución
     fecha_limite = pedido.fecha + timedelta(days=90)
     if timezone.now() > fecha_limite:
         messages.error(request, 'Este pedido ya no se encuentra dentro del periodo para solicitar una devolución.')
         return redirect('mis_compras')
 
     if request.method == 'POST':
-        # Obtenemos la lista de IDs de los detalles del pedido que el usuario seleccionó
         detalles_ids_a_devolver = request.POST.getlist('detalles_a_devolver')
         motivo = request.POST.get('motivo_devolucion', '').strip()
+        imagen_devolucion = request.FILES.get('imagen_devolucion')
 
         if not detalles_ids_a_devolver:
             messages.error(request, 'Debes seleccionar al menos un producto para devolver.')
         elif not motivo:
             messages.error(request, 'Debes escribir un motivo para la devolución.')
         else:
-            # Creamos la devolución principal
-            devolucion = Devolucion.objects.create(
+            # Creamos la devolución
+            devolucion = Devolucion(
                 pedido=pedido,
                 descripcion_devolucion=motivo,
                 fecha_devolucion=timezone.now()
             )
 
-            # (Aquí en el futuro se asociarían los productos devueltos a la devolución)
-            # Por ahora, con esto es suficiente para el flujo básico.
-            #Poner img a las devoluciones y crear tabla de imgdevoluciones
-            #mejorar formulario con opciones comunes y otros
+            if imagen_devolucion:
+                # Generamos un nombre de archivo único para evitar colisiones
+                extension = os.path.splitext(imagen_devolucion.name)[1]
+                nombre_unico = f"{uuid.uuid4()}{extension}"
+                imagen_devolucion.name = nombre_unico
+                devolucion.url_img_prod_devuelto = imagen_devolucion
+
+            devolucion.save()  # Guardamos la devolución con la imagen
 
             messages.success(request, f'Tu solicitud de devolución para el pedido #{pedido.id} ha sido enviada.')
-            return redirect('mis_compras')  # Redirigimos de vuelta al historial
+            return redirect('mis_compras')
 
     context = {
         'pedido': pedido
     }
     return render(request, 'compras/solicitar_devolucion.html', context)
 
-# --- FIN: LÓGICA COMPLETA DE MIS PRODUCTOS ---
+# --- FIN: LÓGICA COMPLETA DE MIS COMPRAS ---
 
 # --- INICIO: LÓGICA COMPLETA DE MIS DEVOLUCIONES ---
 
@@ -208,3 +215,5 @@ def mis_devoluciones(request):
         'devoluciones': devoluciones
     }
     return render(request, 'compras/mis_devoluciones.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE MIS DEVOLUCIONES ---

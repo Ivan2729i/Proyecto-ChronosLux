@@ -3,7 +3,9 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-12">
-  <h1 class="text-3xl font-bold text-center mb-8">Mi Historial de Compras</h1>
+  <h1 class="font-serif font-black text-4xl md:text-4xl custom-text-foreground mb-4 text-center">
+        Mi Historial <span class="custom-text-secondary">de Compras</span>
+  </h1>
 
   <div class="space-y-8">
     {% for pedido in pedidos %}
@@ -22,10 +24,18 @@
             <p class="font-bold text-lg custom-text-secondary">${{ pedido.total_pagar|floatformat:2|intcomma }}</p>
           </div>
           <div>
-            {% if pedido.fecha > fecha_limite_devolucion %}
-              <a href="{% url 'solicitar_devolucion' pedido.id %}" class="btn-animado text-sm py-2 px-4">Solicitar Devolución</a>
+            {% if pedido.id in pedidos_con_devolucion %}
+              <span class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-md">
+                Devolución Pedida
+              </span>
+            {% elif pedido.fecha > fecha_limite_devolucion %}
+              <a href="{% url 'solicitar_devolucion' pedido.id %}" class="btn-animado text-sm py-2 px-4">
+                Solicitar Devolución
+              </a>
             {% else %}
-              <span class="text-sm text-gray-400" title="El periodo para devoluciones ha expirado.">Devolución no disponible</span>
+              <span class="text-sm text-gray-400" title="El periodo para devoluciones ha expirado.">
+                Devolución no disponible
+              </span>
             {% endif %}
           </div>
         </div>

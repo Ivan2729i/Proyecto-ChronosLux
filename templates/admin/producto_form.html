@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8 max-w-2xl">
-  <h1 class="text-3xl font-bold custom-text-foreground mb-6">
-    {% if form.instance.pk %}Editar{% else %}Agregar Nuevo{% endif %} Reloj
+  <h1 class="font-serif font-black text-3xl custom-text-foreground mb-6">
+    {% if form.instance.pk %}Editar{% else %}Agregar Nuevo{% endif %} <span class="custom-text-secondary">Reloj</span>
   </h1>
 
   <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md space-y-4">
@@ -29,8 +29,9 @@
       </div>
     {% endfor %}
 
-    <div class="flex justify-end pt-4">
-      <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 mr-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300">
+    <div class="flex justify-end pt-4 gap-5">
+      <a href="{% url 'admin_dashboard' %}"
+         class="btn-animado bg-gray-200 text-gray-800 hover:bg-gray-300 hover:text-gray-900 font-semibold rounded-md">
         Cancelar
       </a>
       <button type="submit" class="btn-animado custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md">

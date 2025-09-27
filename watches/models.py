@@ -178,7 +178,7 @@ class Devolucion(models.Model):
     )
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     fecha_devolucion = models.DateTimeField(blank=True, null=True)
-    url_img_prod_devuelto = models.CharField(max_length=255, blank=True, null=True)
+    url_img_prod_devuelto = models.ImageField(upload_to='devoluciones/', blank=True, null=True)
     descripcion_devolucion = models.TextField(blank=True, null=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='solicitada')
 

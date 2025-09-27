@@ -4,7 +4,8 @@
 {% load humanize %}
 
 <a href="{% url 'product_detail' producto_id=watch.id %}" class="block">
-  <div class="watch-item group flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+  <div class="watch-item group flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+      data-brand="{{ watch.marca.nombre|lower|cut:' ' }}">
 
     <div class="relative aspect-square overflow-hidden">
       {# ETIQUETA DE TIPO #}
