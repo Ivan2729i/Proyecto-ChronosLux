@@ -48,26 +48,67 @@
 
   {# Sección de Reseñas #}
   <div class="border-t border-gray-200 mt-16 pt-10">
-    <h2 class="text-2xl font-bold mb-6 custom-text-foreground">Reseñas de Clientes</h2>
-    <div class="space-y-6">
-      {% for reseña in reseñas %}
-        <div class="border-b border-gray-100 pb-4">
-          <div class="flex items-center mb-2">
-            <div class="flex items-center">
-              {% for i in "12345" %}
-                {% if forloop.counter <= reseña.calificacion %}
-                  <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
-                {% else %}
-                  <i data-lucide="star" class="w-5 h-5 text-gray-300"></i>
-                {% endif %}
-              {% endfor %}
-            </div>
-            <p class="ml-3 font-semibold custom-text-foreground">{{ reseña.usuario.nombre }}</p>
+    <h2 class="font-serif font-black text-4xl md:text-4xl custom-text-foreground mb-4 text-left">
+          <span class="text-black">Reseñas de</span> <span class="custom-text-secondary">Clientes</span>
+    </h2>
+
+    {% if user.is_authenticated %}
+    <div class="bg-gray-200 p-6 rounded-lg border mb-8">
+      <h3 class="font-semibold text-lg mb-4">
+        {% if mi_resena %}Edita tu reseña{% else %}Escribe una reseña{% endif %}
+      </h3>
+      <form method="post">
+        {% csrf_token %}
+        {{ resena_form.calificacion }}
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Tu calificación:</label>
+          <div id="star-rating" class="flex items-center space-x-1 cursor-pointer">
+            {% for i in "12345" %}
+              <i data-lucide="star" data-value="{{ forloop.counter }}" class="star w-6 h-6 text-gray-300 transition-colors hover:text-yellow-400
+                {% if mi_resena.calificacion >= forloop.counter %}fill-yellow-400 text-yellow-400{% endif %}">
+              </i>
+            {% endfor %}
           </div>
-          <p class="text-gray-600">{{ reseña.comentario }}</p>
+        </div>
+        <div class="mb-4">
+          <label for="{{ resena_form.comentario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Tu comentario:</label>
+          {{ resena_form.comentario }}
+        </div>
+        <button type="submit" class="btn-animado">
+          {% if mi_resena %}Actualizar Reseña{% else %}Publicar Reseña{% endif %}
+        </button>
+      </form>
+    </div>
+    {% else %}
+      <div class="bg-gray-100 p-4 rounded-lg text-center mb-8">
+          <p>Debes <a href="{% url 'login' %}" class="custom-text-secondary underline">iniciar sesión</a> para poder escribir una reseña.</p>
+      </div>
+    {% endif %}
+
+    <div class="space-y-6">
+      {% for resena in reseñas %}
+        <div class="border-b border-gray-100 pb-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center">
+              <div class="flex items-center">
+                {% for i in "12345" %}
+                  {% if forloop.counter <= resena.calificacion %}
+                    <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
+                  {% else %}
+                    <i data-lucide="star" class="w-5 h-5 text-gray-300"></i>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <p class="ml-3 font-semibold custom-text-foreground">{{ resena.usuario.first_name }}</p>
+            </div>
+
+            <p class="text-sm text-gray-400">{{ resena.fecha|date:"d M, Y" }}</p>
+          </div>
+          <p class="text-gray-600">{{ resena.comentario }}</p>
         </div>
       {% empty %}
-        <p class="text-gray-500">Este producto aún no tiene reseñas. ¡Sé el primero!</p>
+        {% if not mi_resena %} <p class="text-gray-500">Este producto aún no tiene reseñas. ¡Sé el primero!</p>
+        {% endif %}
       {% endfor %}
     </div>
   </div>

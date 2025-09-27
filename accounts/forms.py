@@ -172,7 +172,6 @@ class SignupForm(UserCreationForm):
         _validate_password_strength(p1)
         return p1
 
-    # Evitar MENSAJES en inglés en password2: no validamos aquí.
     def clean_password2(self):
         return (self.cleaned_data.get("password2") or "")
 
@@ -220,7 +219,6 @@ class DomicilioForm(forms.ModelForm):
 
     def clean_telefono(self):
         telefono = self.cleaned_data.get('telefono')
-        # Solo validamos si el campo no está vacío
         if telefono:
             if not telefono.isdigit():
                 raise forms.ValidationError("El teléfono solo puede contener números.")

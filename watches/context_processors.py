@@ -5,13 +5,11 @@ from django.db.models import Sum
 def cart_context(request):
     total_items = 0
     if request.user.is_authenticated:
-        # Lógica para usuarios logueados
         carrito_activo = Carrito.objects.filter(usuario=request.user, estado='activo').first()
         if carrito_activo:
             resultado = DetalleCarrito.objects.filter(carrito=carrito_activo).aggregate(total=Sum('cantidad'))
             total_items = resultado['total'] or 0
     else:
-        # Lógica para usuarios anónimos (sesión)
         cart_session = request.session.get('cart', {})
         total_items = sum(item.get('quantity', 0) for item in cart_session.values())
 
@@ -20,6 +18,7 @@ def cart_context(request):
     }
 
 # --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
+
 def home_page_context(request):
     # --- SECCIÓN DE RELOJES DESTACADOS ---
     ids_destacados = [9, 12, 16]
@@ -43,7 +42,6 @@ def home_page_context(request):
     if request.user.is_authenticated:
         favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
 
-    # Devuelve el diccionario de contexto completo
     return {
         'featured_watches': relojes_destacados,
         'catalog_watches': relojes_catalogo_home,
@@ -51,7 +49,5 @@ def home_page_context(request):
         'exclusive_watch': reloj_exclusivo_destacado,
         'favoritos_ids': favoritos_ids,
     }
-
-
 
 # --- FIN: LÓGICA COMPLETA DE LA VISTA DE HOME ---
