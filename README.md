@@ -100,4 +100,7 @@ Sigue estos pasos para correr el proyecto en un entorno local.
 ---
 
 ## 👤 Contacto
-Iván Paz Valladares - [Tu LinkedIn o Correo Electrónico]
+Iván Paz Valladares
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-blue?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/ivan-paz-valladares-b8886a343)
+
