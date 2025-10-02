@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 import json
 from .forms import ProductoForm, ResenaForm
 from django.db.models import Q, Sum
@@ -14,6 +14,8 @@ from datetime import timedelta
 from django.contrib.admin.views.decorators import staff_member_required
 from .context_processors import home_page_context
 from django.db.models import Case, When, Value, IntegerField
+from django.conf import settings
+import google.generativeai as genai
 
 
 # --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
@@ -668,3 +670,82 @@ def gestionar_devoluciones(request):
     return render(request, 'admin/gestionar_devoluciones.html', context)
 
 # --- FIN: LÓGICA COMPLETA DE MIS DEVOLUCIONES ADMIN ---
+
+# --- INICIO: LÓGICA COMPLETA PARA CHATBOT ---
+
+try:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+except AttributeError:
+    # Manejo de error si la clave no está en settings.py
+    # Esto es útil para que el servidor no se caiga si olvidas la clave
+    print("ERROR: La clave GEMINI_API_KEY no se encontró en settings.py")
+    genai.configure(api_key="CLAVE_NO_CONFIGURADA")
+
+INSTRUCCIONES_DEL_SISTEMA = """
+Eres ChronoBot, un asistente de ventas experto y amigable de la tienda de relojes de lujo ChronosLux.
+Tu misión es responder las preguntas del cliente basándote EXCLUSIVAMENTE en la información de la base de datos que te proporciono a continuación.
+NO inventes información. Si el cliente pregunta por algo que no está en la lista, infórmale amablemente que no lo manejas.
+Sé conciso y servicial.
+Si preguntan sobre devoluciones, los clientes tendrán un plazo maximo de 3 meses para hacer la devolución de un pedido.
+Si preguntan para hacer compras puedes decirle que visten el apartado de catalogo ya sea el normal o el de exclusivos para ver la variedad de relojes que tenemos,
+los metodos de pago que manejamos son 3 paypal, tarjeta de credito y debito, los envios son gratis.
+**Formatea tus respuestas usando Markdown. Para listas de productos, usa viñetas (*) y resalta los nombres de los relojes en negrita (**Nombre del Reloj**).**
+"""
+
+modelo_gemini = genai.GenerativeModel(
+    model_name="models/gemini-flash-latest",
+    system_instruction=INSTRUCCIONES_DEL_SISTEMA
+)
+
+def chatbot_api(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Esta ruta solo acepta solicitudes POST.'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        user_message = data.get('message', '').strip()
+
+        if not user_message:
+            return JsonResponse({'error': 'No se recibió ningún mensaje.'}, status=400)
+
+
+        productos_en_bdd = Producto.objects.select_related('marca', 'categoria').filter(stock__gt=0,
+                                                                                        fecha_borrado__isnull=True)
+
+        # 2. Formateamos la información de la BDD en un texto que la IA pueda entender.
+        info_bdd_texto = "--- INFORMACIÓN DE LA BASE DE DATOS (Inventario Actual) ---\n"
+        if productos_en_bdd:
+            for producto in productos_en_bdd:
+                info_bdd_texto += (
+                    f"* **{producto.marca.nombre} {producto.nombre}**: "
+                    f"Precio: ${producto.precio:,.2f} MXN. "
+                    f"Material: {producto.categoria.material}. "
+                    f"Género: {producto.categoria.genero}.\n"
+                )
+        else:
+            info_bdd_texto += "Actualmente no tenemos productos disponibles en la tienda.\n"
+
+        info_bdd_texto += "--------------------------------------------------------\n"
+
+        # 3. Construimos el prompt final que enviaremos a Gemini.
+        prompt_final = f"{info_bdd_texto}\nPREGUNTA DEL CLIENTE: \"{user_message}\""
+
+        # 4. Iniciamos la conversación con la IA y enviamos el prompt.
+        chat = modelo_gemini.start_chat(history=[])
+        respuesta_stream = chat.send_message(prompt_final, stream=True)
+
+        # 5. Devolvemos la respuesta en "streaming" para una experiencia más rápida.
+        def stream_generator():
+            for chunk in respuesta_stream:
+                yield chunk.text
+
+        return StreamingHttpResponse(stream_generator(), content_type='text/plain; charset=utf-8')
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'El cuerpo de la solicitud no es un JSON válido.'}, status=400)
+    except Exception as e:
+        # Imprimimos el error en la consola de Django para poder depurarlo
+        print(f"Error en la vista del chatbot: {e}")
+        return JsonResponse({'error': 'Ocurrió un error interno en el servidor.'}, status=500)
+
+# --- FIN: LÓGICA COMPLETA PARA CHATBOT ---

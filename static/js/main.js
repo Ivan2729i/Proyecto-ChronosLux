@@ -274,6 +274,88 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- FIN: CÓDIGO DE RESEÑAS ---
+
+    // --- INICIO: CÓDIGO DEL CHATBOT ---
+    const chatIcon = document.getElementById('chat-icon');
+    const chatWindow = document.getElementById('chat-window');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input-text');
+    const closeChatBtn = document.getElementById('close-chat-btn');
+
+    // Abrir y cerrar la ventana de chat
+    chatIcon?.addEventListener('click', () => {
+        chatWindow?.classList.toggle('open');
+        chatWindow?.classList.toggle('hidden');
+    });
+    closeChatBtn?.addEventListener('click', () => {
+        chatWindow?.classList.remove('open');
+        chatWindow?.classList.add('hidden');
+    });
+
+    // Función para añadir un mensaje al contenedor
+    const addMessage = (text, className) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${className}`;
+        messageDiv.textContent = text;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageDiv;
+    };
+
+    // Función para enviar el mensaje
+    const sendMessage = async () => {
+        const message = chatInput.value.trim();
+        if (message === '') return;
+
+        addMessage(message, 'user-message');
+        chatInput.value = '';
+        const botMessageContainer = addMessage('Escribiendo...', 'bot-message');
+
+        try {
+            const response = await fetch('/api/chatbot/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            if (!response.ok) {
+                botMessageContainer.textContent = 'Lo siento, hubo un error.';
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let botResponseMarkdown = '';
+
+            while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            botResponseMarkdown += chunk;
+
+            botMessageContainer.innerHTML = marked.parse(botResponseMarkdown);
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+    } catch (error) {
+            botMessageContainer.textContent = 'Lo siento, no pude obtener una respuesta.';
+            console.error('Error en el fetch del chatbot:', error);
+        }
+    };
+
+    // Event Listeners para enviar el mensaje
+    chatForm?.addEventListener('submit', (e) => {
+        e.preventDefault();
+        sendMessage();
+    });
+
+//  --- FIN: CÓDIGO DEL CHATBOT ---
 });
 
 // Fallback robusto para abrir/cerrar el modal por delegación
