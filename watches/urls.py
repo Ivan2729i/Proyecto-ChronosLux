@@ -21,4 +21,5 @@ urlpatterns = [
     path('favoritos/', views.favoritos_list, name='favoritos_list'),
     path('favoritos/toggle/<int:producto_id>/', views.toggle_favorite, name='toggle_favorite'),
     path('administracion/devoluciones/', views.gestionar_devoluciones, name='gestionar_devoluciones'),
+    path('api/chatbot/', views.chatbot_api, name='chatbot_api'),
 ]

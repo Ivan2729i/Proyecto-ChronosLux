@@ -9,6 +9,7 @@
     <meta name="description" content="Discover the finest collection of luxury watches combining elegance and precision">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -311,7 +312,27 @@
     </div>
     {# === /MODAL DE AUTENTICACIÓN === #}
 
+    {# === MODAL DE CHATBOT === #}
+    <div id="chat-icon" class="cursor-pointer">
+        <i data-lucide="message-circle"></i>
+    </div>
 
+    <div id="chat-window" class="hidden">
+        <div class="chat-header">
+            <span>ChronoBot Asistente</span>
+            <button id="close-chat-btn" class="p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">¡Hola! Soy ChronoBot. ¿En qué puedo ayudarte?</div>
+        </div>
+        <form id="chat-form" class="chat-input">
+            <input type="text" id="chat-input-text" placeholder="Escribe tu mensaje..." autocomplete="off">
+            <button type="submit" id="chat-send-btn">
+                <i data-lucide="send" class="w-4 h-4"></i>
+            </button>
+        </form>
+    </div>
+    {# === /MODAL DE CHATBOT === #}
 
     <script src="{% static 'js/main.js' %}?v=2"></script>
     {% block extra_js %}{% endblock %}
