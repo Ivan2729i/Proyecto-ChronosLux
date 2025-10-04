@@ -36,7 +36,6 @@ class ProductoForm(forms.ModelForm):
         fields = [
             'nombre',
             'precio',
-            'stock',
             'marca',
             'es_exclusivo',
             'descripcion1',
@@ -46,7 +45,6 @@ class ProductoForm(forms.ModelForm):
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
             'precio': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
-            'stock': forms.NumberInput(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
             'marca': forms.Select(attrs={'class': 'w-full px-3 py-2 border border-gray-300 rounded-md'}),
             'es_exclusivo': forms.Select(
                 choices=[(False, 'No'), (True, 'Sí')],
@@ -80,11 +78,11 @@ class ProductoForm(forms.ModelForm):
             raise forms.ValidationError("La descripción contiene caracteres no válidos.")
         return descripcion
 
-    def clean_stock(self):
-        stock = self.cleaned_data.get('stock')
-        if stock is not None and stock < 1:
-            raise forms.ValidationError("El stock no puede ser cero o un número negativo. El mínimo es 1.")
-        return stock
+    # def clean_stock(self):
+    #    stock = self.cleaned_data.get('stock')
+    #    if stock is not None and stock < 1:
+    #        raise forms.ValidationError("El stock no puede ser cero o un número negativo. El mínimo es 1.")
+    #    return stock
 
     def clean_precio(self):
         precio = self.cleaned_data.get('precio')

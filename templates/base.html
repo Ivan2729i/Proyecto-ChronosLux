@@ -34,8 +34,12 @@
                     <a href="{% url 'catalog' %}" class="nav-link font-medium">Catálogo</a>
                     <a href="{% url 'exclusivos_catalog' %}" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a>
+                        {% elif is_proveedor %}
+                            <a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a>
+                        {% endif %}
                     {% endif %}
                 </nav>
 
@@ -81,8 +85,12 @@
                     <a href="{% url 'catalog' %}" class="nav-link font-medium">Catálogo</a>
                     <a href="{% url 'exclusivos_catalog' %}" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a>
+                        {% elif is_proveedor %}
+                            <a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a>
+                        {% endif %}
                     {% endif %}
                     <div class="flex items-center space-x-2 pt-2">
                         <input type="text" placeholder="Buscar relojes..." class="flex-1 px-3 py-2 rounded-md bg-white text-gray-900">
@@ -128,11 +136,13 @@
                         <li><a href="{% url 'catalog' %}" class="nav-link hover:text-secondary transition-colors">Catálogo</a></li>
                         <li><a href="{% url 'exclusivos_catalog' %}" class="nav-link hover:text-secondary transition-colors">Exclusivos</a></li>
                         <li><a href="#contact" class="nav-link hover:text-secondary transition-colors">Contacto</a></li>
-                        {% if user.is_authenticated and user.is_staff %}
-                        <li class="nav-item">
-                            <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
-                        </li>
+                        {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a></li>
+                        {% elif is_proveedor %}
+                            <li><a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a></li>
                         {% endif %}
+                    {% endif %}
                     </ul>
                 </div>
                 <div>

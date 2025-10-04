@@ -346,6 +346,7 @@ def crear_producto(request):
             # Guardamos el producto sin commit para asignarle la categoría
             producto = form.save(commit=False)
             producto.categoria = categoria_obj
+            producto.stock = 1
             producto.save()
 
             # --- Lógica para guardar la imagen ---
@@ -676,8 +677,6 @@ def gestionar_devoluciones(request):
 try:
     genai.configure(api_key=settings.GEMINI_API_KEY)
 except AttributeError:
-    # Manejo de error si la clave no está en settings.py
-    # Esto es útil para que el servidor no se caiga si olvidas la clave
     print("ERROR: La clave GEMINI_API_KEY no se encontró en settings.py")
     genai.configure(api_key="CLAVE_NO_CONFIGURADA")
 
@@ -712,7 +711,6 @@ def chatbot_api(request):
         productos_en_bdd = Producto.objects.select_related('marca', 'categoria').filter(stock__gt=0,
                                                                                         fecha_borrado__isnull=True)
 
-        # 2. Formateamos la información de la BDD en un texto que la IA pueda entender.
         info_bdd_texto = "--- INFORMACIÓN DE LA BASE DE DATOS (Inventario Actual) ---\n"
         if productos_en_bdd:
             for producto in productos_en_bdd:
@@ -727,14 +725,11 @@ def chatbot_api(request):
 
         info_bdd_texto += "--------------------------------------------------------\n"
 
-        # 3. Construimos el prompt final que enviaremos a Gemini.
         prompt_final = f"{info_bdd_texto}\nPREGUNTA DEL CLIENTE: \"{user_message}\""
 
-        # 4. Iniciamos la conversación con la IA y enviamos el prompt.
         chat = modelo_gemini.start_chat(history=[])
         respuesta_stream = chat.send_message(prompt_final, stream=True)
 
-        # 5. Devolvemos la respuesta en "streaming" para una experiencia más rápida.
         def stream_generator():
             for chunk in respuesta_stream:
                 yield chunk.text
@@ -744,7 +739,6 @@ def chatbot_api(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'El cuerpo de la solicitud no es un JSON válido.'}, status=400)
     except Exception as e:
-        # Imprimimos el error en la consola de Django para poder depurarlo
         print(f"Error en la vista del chatbot: {e}")
         return JsonResponse({'error': 'Ocurrió un error interno en el servidor.'}, status=500)
 
