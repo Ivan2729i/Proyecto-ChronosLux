@@ -4,110 +4,124 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-12">
+
   <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
 
-    {# Sección de Imagen #}
-    <div class="bg-gray-100 rounded-lg p-8">
-      <img src="{{ producto.imgproducto.url.url }}" alt="{{ producto.marca.nombre }} {{ producto.nombre }}" class="w-full h-auto object-contain">
+    <div class="bg-gray-100 rounded-2xl p-8 flex items-center justify-center shadow-inner min-h-[400px]">
+      <img src="{{ producto.imgproducto.url.url }}"
+           alt="{{ producto.marca.nombre }} {{ producto.nombre }}"
+           class="w-full h-auto max-h-[500px] object-contain mix-blend-multiply">
     </div>
 
-    {# Sección de Detalles del Producto #}
     <div>
-      <span class="text-sm font-semibold custom-text-secondary uppercase">{{ producto.marca.nombre }}</span>
+      <span class="text-sm font-semibold custom-text-secondary uppercase tracking-wide">{{ producto.marca.nombre }}</span>
       <h1 class="text-4xl font-bold font-serif my-2 custom-text-foreground">{{ producto.nombre }}</h1>
       <p class="text-3xl font-black custom-text-foreground mb-6">${{ producto.precio|floatformat:0|intcomma }}</p>
 
       <div class="border-t border-gray-200 pt-6">
         <h3 class="text-lg font-semibold mb-3 custom-text-foreground">Especificaciones</h3>
         <ul class="space-y-2 text-gray-700">
-          {% if producto.descripcion1 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion1 }}</li>{% endif %}
-          {% if producto.descripcion2 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion2 }}</li>{% endif %}
-          {% if producto.descripcion3 %}<li><i data-lucide="check" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i>{{ producto.descripcion3 }}</li>{% endif %}
+          {% if producto.descripcion1 %}
+            <li class="flex items-start"><i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2 mt-1"></i><span>{{ producto.descripcion1 }}</span></li>
+          {% endif %}
+          {% if producto.descripcion2 %}
+            <li class="flex items-start"><i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2 mt-1"></i><span>{{ producto.descripcion2 }}</span></li>
+          {% endif %}
+          {% if producto.descripcion3 %}
+            <li class="flex items-start"><i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2 mt-1"></i><span>{{ producto.descripcion3 }}</span></li>
+          {% endif %}
 
-          <li><i data-lucide="package" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Material:</strong> {{ producto.categoria.material }}</li>
-          <li><i data-lucide="tag" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Tipo:</strong> {{ producto.categoria.tipo }}</li>
-          <li><i data-lucide="users" class="inline-block w-4 h-4 text-yellow-500 mr-2"></i><strong>Género:</strong> {{ producto.categoria.genero }}</li>
+          <li class="flex items-center"><i data-lucide="package" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2"></i><strong>Material:</strong>&nbsp;{{ producto.categoria.material }}</li>
+          <li class="flex items-center"><i data-lucide="tag" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2"></i><strong>Tipo:</strong>&nbsp;{{ producto.categoria.tipo }}</li>
+          <li class="flex items-center"><i data-lucide="users" class="flex-shrink-0 w-4 h-4 text-yellow-600 mr-2"></i><strong>Género:</strong>&nbsp;{{ producto.categoria.genero }}</li>
         </ul>
       </div>
 
-      {# Botón de Agregar al Carrito #}
       <div class="mt-8">
-        <button class="btn-animado add-to-cart w-3/4 mx-auto py-2 px-5 font-bold rounded-lg
+        <button class="btn-animado add-to-cart w-full md:w-3/4 block text-center py-3 px-6 font-bold rounded-lg
                custom-bg-primary custom-text-primary-foreground
-               hover:bg-primary/90 hover:text-white transition-colors"
+               hover:bg-primary/90 hover:text-white transition-all shadow-lg hover:shadow-xl"
                 data-watch-id="{{ producto.id }}"
                 data-watch-name="{{ producto.nombre }}"
                 data-watch-brand="{{ producto.marca.nombre }}"
                 data-watch-price="{{ producto.precio }}"
-                data-watch-image="{% get_static_prefix %}img/{{ producto.imgproducto.url }}">
+                data-watch-image="{{ producto.imgproducto.url.name }}">
           Agregar al Carrito
         </button>
       </div>
     </div>
   </div>
 
-  {# Sección de Reseñas #}
   <div class="border-t border-gray-200 mt-16 pt-10">
-    <h2 class="font-serif font-black text-4xl md:text-4xl custom-text-foreground mb-4 text-left">
-          <span class="text-black">Reseñas de</span> <span class="custom-text-secondary">Clientes</span>
+    <h2 class="font-serif font-black text-3xl md:text-4xl custom-text-foreground mb-6 text-left">
+          <span class="text-gray-900">Reseñas de</span> <span class="custom-text-secondary">Clientes</span>
     </h2>
 
     {% if user.is_authenticated %}
-    <div class="bg-gray-200 p-6 rounded-lg border mb-8">
-      <h3 class="font-semibold text-lg mb-4">
+    <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-8 shadow-sm">
+      <h3 class="font-semibold text-lg mb-4 custom-text-foreground">
         {% if mi_resena %}Edita tu reseña{% else %}Escribe una reseña{% endif %}
       </h3>
       <form method="post">
         {% csrf_token %}
-        {{ resena_form.calificacion }}
-        <div class="mb-4">
+        {{ resena_form.calificacion }} <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">Tu calificación:</label>
           <div id="star-rating" class="flex items-center space-x-1 cursor-pointer">
             {% for i in "12345" %}
-              <i data-lucide="star" data-value="{{ forloop.counter }}" class="star w-6 h-6 text-gray-300 transition-colors hover:text-yellow-400
+              <i data-lucide="star" data-value="{{ forloop.counter }}" class="star w-6 h-6 text-gray-300 transition-colors hover:text-yellow-500
                 {% if mi_resena.calificacion >= forloop.counter %}fill-yellow-400 text-yellow-400{% endif %}">
               </i>
             {% endfor %}
           </div>
         </div>
+
         <div class="mb-4">
           <label for="{{ resena_form.comentario.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">Tu comentario:</label>
-          {{ resena_form.comentario }}
+          <textarea name="{{ resena_form.comentario.name }}"
+                    id="{{ resena_form.comentario.id_for_label }}"
+                    rows="3"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 p-3 border"
+                    placeholder="Comparte tu opinión...">{{ resena_form.comentario.value|default:'' }}</textarea>
         </div>
-        <button type="submit" class="btn-animado">
+
+        <button type="submit" class="btn-animado px-6 py-2 rounded-md custom-bg-secondary custom-text-secondary-foreground font-semibold hover:opacity-90 transition-opacity">
           {% if mi_resena %}Actualizar Reseña{% else %}Publicar Reseña{% endif %}
         </button>
       </form>
     </div>
     {% else %}
-      <div class="bg-gray-100 p-4 rounded-lg text-center mb-8">
-          <p>Debes <a href="{% url 'login' %}" class="custom-text-secondary underline">iniciar sesión</a> para poder escribir una reseña.</p>
+      <div class="bg-gray-100 p-6 rounded-xl text-center mb-8 border border-gray-200">
+          <p class="text-gray-600">Debes <a href="{% url 'login' %}" class="custom-text-secondary font-bold hover:underline">iniciar sesión</a> para poder escribir una reseña.</p>
       </div>
     {% endif %}
 
     <div class="space-y-6">
       {% for resena in reseñas %}
-        <div class="border-b border-gray-100 pb-4">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center">
+        <div class="border-b border-gray-100 pb-6 last:border-0">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
               <div class="flex items-center">
                 {% for i in "12345" %}
                   {% if forloop.counter <= resena.calificacion %}
-                    <i data-lucide="star" class="w-5 h-5 fill-yellow-400 text-yellow-400"></i>
+                    <i data-lucide="star" class="w-4 h-4 fill-yellow-400 text-yellow-400"></i>
                   {% else %}
-                    <i data-lucide="star" class="w-5 h-5 text-gray-300"></i>
+                    <i data-lucide="star" class="w-4 h-4 text-gray-300"></i>
                   {% endif %}
                 {% endfor %}
               </div>
-              <p class="ml-3 font-semibold custom-text-foreground">{{ resena.usuario.first_name }}</p>
+              <p class="font-bold custom-text-foreground">{{ resena.usuario.first_name }}</p>
             </div>
 
-            <p class="text-sm text-gray-400">{{ resena.fecha|date:"d M, Y" }}</p>
+            <p class="text-xs text-gray-400 font-mono">{{ resena.fecha|date:"d M, Y" }}</p>
           </div>
-          <p class="text-gray-600">{{ resena.comentario }}</p>
+          <p class="text-gray-600 leading-relaxed">{{ resena.comentario }}</p>
         </div>
       {% empty %}
-        {% if not mi_resena %} <p class="text-gray-500">Este producto aún no tiene reseñas. ¡Sé el primero!</p>
+        {% if not mi_resena %}
+          <div class="text-center py-10">
+            <i data-lucide="message-square" class="w-12 h-12 text-gray-300 mx-auto mb-3"></i>
+            <p class="text-gray-500">Este producto aún no tiene reseñas. ¡Sé el primero!</p>
+          </div>
         {% endif %}
       {% endfor %}
     </div>

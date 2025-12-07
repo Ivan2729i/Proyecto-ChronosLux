@@ -8,14 +8,6 @@
             Finalizar <span class="custom-text-secondary">Compra</span>
     </h1>
 
-    {% if messages %}
-      {% for message in messages %}
-        <div class="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-
     <form action="{% url 'place_order' %}" method="post">
         {% csrf_token %}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">

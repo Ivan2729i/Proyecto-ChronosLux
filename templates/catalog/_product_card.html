@@ -1,14 +1,12 @@
-{# templates/catalog/_product_card.html #}
 
 {% load static %}
 {% load humanize %}
 
 <a href="{% url 'product_detail' producto_id=watch.id %}" class="block">
-  <div class="watch-item group flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+  <div class="h-full watch-item group flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
       data-brand="{{ watch.marca.nombre|lower|cut:' ' }}">
 
     <div class="relative aspect-square overflow-hidden">
-      {# ETIQUETA DE TIPO #}
       {% if watch.categoria.tipo %}
         <span class="absolute top-3 left-3 bg-gray-900/80 text-white text-xs font-semibold px-3 py-1 rounded-md shadow">
           {{ watch.categoria.tipo }}

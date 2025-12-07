@@ -29,7 +29,7 @@ def home(request):
 # --- INICIO: LÓGICA COMPLETA DE VISTA Y FILTROS NORMALES ---
 
 def catalog(request):
-    items = Producto.objects.select_related('categoria', 'marca', 'imgproducto').filter(es_exclusivo=False)
+    items = Producto.objects.select_related('categoria', 'marca', 'imgproducto')
 
     # Barra de busqueda
     query = request.GET.get('q')
@@ -39,8 +39,13 @@ def catalog(request):
             Q(marca__nombre__icontains=query) |
             Q(descripcion1__icontains=query) |
             Q(descripcion2__icontains=query) |
-            Q(descripcion3__icontains=query)
+            Q(descripcion3__icontains=query) |
+            Q(categoria__material__icontains=query) |
+            Q(categoria__genero__icontains=query) |
+            Q(categoria__tipo__icontains=query)
         )
+    else:
+        items = items.filter(es_exclusivo=False)
 
     # Filtros
     t = (request.GET.get('type') or '').lower()
