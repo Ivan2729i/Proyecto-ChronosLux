@@ -71,14 +71,14 @@ Sigue estos pasos para correr el proyecto en un entorno local.
     ```
 
 3.  **Instala las dependencias:**
-    *Asegúrate de haber creado tu archivo `requirements.txt` (ver la nota abajo).*
+    
     ```bash
     pip install -r requirements.txt
     ```
 
 4.  **Configura la base de datos:**
     * Crea una base de datos en MySQL llamada `chronoslux`.
-    * En el archivo `settings.py`, actualiza los datos de `DATABASES` con tu usuario y contraseña de MySQL.
+    * En el archivo `.env`, actualiza los datos de `DATABASES` con tu usuario y contraseña de MySQL.
 
 5.  **Aplica las migraciones:**
     ```bash
