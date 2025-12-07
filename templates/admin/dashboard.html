@@ -58,8 +58,10 @@
           <td class="px-5 py-4 text-sm">${{ producto.precio|floatformat:2|intcomma }}</td>
           <td class="px-5 py-4 text-sm">{{ producto.stock }}</td>
           <td class="px-5 py-4 text-sm">
-            <a href="{% url 'editar_producto' producto.id %}" class="text-indigo-600 hover:text-indigo-900 mr-4">Editar</a>
-            <a href="{% url 'eliminar_producto' producto.id %}" class="text-red-600 hover:text-red-900">Eliminar</a>
+            <div class="flex items-center gap-4 whitespace-nowrap">
+              <a href="{% url 'editar_producto' producto.id %}" class="text-indigo-600 hover:text-indigo-900 mr-4">Editar</a>
+              <a href="{% url 'eliminar_producto' producto.id %}" class="text-red-600 hover:text-red-900">Eliminar</a>
+            </div>
           </td>
         </tr>
         {% empty %}

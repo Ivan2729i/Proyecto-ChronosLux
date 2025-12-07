@@ -1,77 +1,53 @@
 # ========================
-# ENTORNOS Y DEPENDENCIAS
+# PYTHON Y ENTORNOS
 # ========================
+__pycache__/
+*.py[cod]
+*$py.class
+
 # Entornos virtuales
 .venv/
 env/
 venv/
 ENV/
 
-# Dependencias descargadas
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.so
-
 # ========================
-# CONFIGURACIÓN DEL IDE
-# ========================
-# PyCharm / IntelliJ
-.idea/
-# VSCode
-.vscode/
-*.code-workspace
-
-# ========================
-# ARCHIVOS TEMPORALES
-# ========================
-# SO
-Thumbs.db
-.DS_Store
-
-# Logs
-*.log
-
-# ========================
-# ARCHIVOS DE DJANGO
-# ========================
-# Base de datos SQLite local
-db.sqlite3
-*.sqlite3
-
-# Archivos compilados de traducciones
-*.mo
-
-# Archivos estáticos y de usuario (generados, no fuente)
-static/
-media/
-
-# ========================
-# CONFIGURACIÓN SENSIBLE
+# VARIABLES DE ENTORNO
 # ========================
 .env
-*.env
+.env.*
 *.key
-config.py
 
-# settings local (mantén tu settings de prod versionado)
-settings.py
+# ========================
+# BASE DE DATOS LOCAL
+# ========================
+db.sqlite3
+db.sqlite3-journal
+
+# ========================
+# DJANGO
+# ========================
+# Archivos estáticos recolectados
+staticfiles/
+
+# Archivos subidos por usuarios
+media/
+
+# Logs y errores
+*.log
+local_settings.py
+
+# ========================
+# IDEs y SISTEMA OPERATIVO
+# ========================
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
 
 # ========================
 # MIGRACIONES
 # ========================
-*/migrations/
-!*/migrations/__init__.py  # deja solo los __init__.py
-
-# ========================
-# EXCEPCIONES (mantener en git)
-# ========================
-!accounts/models.py
-!accounts/views.py
-!accounts/urls.py
-!accounts/admin.py
-!accounts/forms.py
-!accounts/migrations/
-!templates/registration/
-!watches/migrations/
+*/migrations/*.pyc
+*/migrations/*.pyo

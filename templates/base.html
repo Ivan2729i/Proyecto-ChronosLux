@@ -34,8 +34,12 @@
                     <a href="{% url 'catalog' %}" class="nav-link font-medium">Catálogo</a>
                     <a href="{% url 'exclusivos_catalog' %}" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a>
+                        {% elif is_proveedor %}
+                            <a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a>
+                        {% endif %}
                     {% endif %}
                 </nav>
 
@@ -45,7 +49,7 @@
                              name="q"
                              value="{{ search_query|default:'' }}"
                              placeholder="Buscar relojes..."
-                             class="w-64 px-3 py-2 rounded-md bg-white text-gray-900">
+                             class="w-64 px-3 py-2 rounded-md bg-white text-gray-900 border-none focus:ring-2 focus:ring-secondary">
                       <button type="submit"
                               class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                               title="Buscar">
@@ -81,19 +85,36 @@
                     <a href="{% url 'catalog' %}" class="nav-link font-medium">Catálogo</a>
                     <a href="{% url 'exclusivos_catalog' %}" class="nav-link font-medium">Exclusivos</a>
                     <a href="#contact" class="nav-link font-medium">Contacto</a>
-                    {% if user.is_authenticated and user.is_staff %}
-                    <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
+                    {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a>
+                        {% elif is_proveedor %}
+                            <a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a>
+                        {% endif %}
                     {% endif %}
                     <div class="flex items-center space-x-2 pt-2">
-                        <input type="text" placeholder="Buscar relojes..." class="flex-1 px-3 py-2 rounded-md bg-white text-gray-900">
-                        <button class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
-                            <i data-lucide="search" class="w-4 h-4"></i>
-                        </button>
+                        <form action="{% url 'catalog' %}" method="get" class="flex items-center space-x-2 pt-2">
+                            <input type="text" name="q" placeholder="Buscar relojes..." class="flex-1 px-3 py-2 rounded-md bg-white text-gray-900">
+                            <button type="submit" class="px-3 py-2 custom-bg-secondary custom-text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </button>
+                        </form>
                     </div>
                 </nav>
             </div>
         </div>
     </header>
+
+    {% if messages %}
+      <div class="container mx-auto px-4 mt-4">
+          {% for message in messages %}
+            {# Usamos lógica para cambiar el color según si es error o éxito #}
+            <div class="p-4 mb-4 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
+              {{ message }}
+            </div>
+          {% endfor %}
+      </div>
+    {% endif %}
 
     {% block content %}
     {% endblock %}
@@ -128,11 +149,13 @@
                         <li><a href="{% url 'catalog' %}" class="nav-link hover:text-secondary transition-colors">Catálogo</a></li>
                         <li><a href="{% url 'exclusivos_catalog' %}" class="nav-link hover:text-secondary transition-colors">Exclusivos</a></li>
                         <li><a href="#contact" class="nav-link hover:text-secondary transition-colors">Contacto</a></li>
-                        {% if user.is_authenticated and user.is_staff %}
-                        <li class="nav-item">
-                            <a href="{% url 'admin_dashboard' %}" class="nav-link">Administrador</a>
-                        </li>
+                        {% if user.is_authenticated %}
+                        {% if user.is_staff %}
+                            <li><a href="{% url 'admin_dashboard' %}" class="nav-link font-medium">Administrador</a></li>
+                        {% elif is_proveedor %}
+                            <li><a href="{% url 'portal_proveedor' %}" class="nav-link font-medium">Portal Proveedor</a></li>
                         {% endif %}
+                    {% endif %}
                     </ul>
                 </div>
                 <div>
@@ -334,25 +357,12 @@
     </div>
     {# === /MODAL DE CHATBOT === #}
 
-    <script src="{% static 'js/main.js' %}?v=2"></script>
+    <script src="{% static 'js/main.js' %}?v=3"></script>
+    <script src="{% static 'js/cart.js' %}?v=3"></script>
+    <script src="{% static 'js/chatbot.js' %}?v=3"></script>
     {% block extra_js %}{% endblock %}
     <script src="{% static 'js/auth-modal.js' %}?v=1"></script>
     <script src="{% static 'js/catalog.js' %}"></script>
-
-
-    <script>
-    // Fallback mínimo: abre/cierra el modal aunque falle main.js
-    document.addEventListener('click', function(e){
-      if (e.target.closest('#user-icon-btn')) {
-        var m = document.getElementById('user-modal');
-        if (m) m.classList.remove('hidden');
-      }
-      if (e.target.closest('#close-modal')) {
-        var m = document.getElementById('user-modal');
-        if (m) m.classList.add('hidden');
-      }
-    });
-    </script>
 
 </body>
 </html>

@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
 
 {% block content %}
 <div class="min-h-screen py-20 custom-bg-background">
@@ -16,12 +18,81 @@
         Explora nuestra colección completa de relojes de lujo y encuentra el timepiece perfecto
       </p>
     </div>
-
     {% include "catalog/_filters_bar.html" %}
-
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {% for watch in catalog_watches %}
-        {% include "catalog/_product_card.html" with watch=watch %}
+        {% if watch.es_exclusivo %}
+
+            <a href="{% url 'product_detail' producto_id=watch.id %}" class="block group h-full">
+              <div class="bg-[#090C27] border border-white/20
+                          rounded-xl shadow-lg overflow-hidden
+                          transition-all duration-300 hover:shadow-yellow-400/30 hover:-translate-y-1
+                          h-full flex flex-col relative">
+
+                <div class="relative">
+                  <img src="{{ watch.imgproducto.url.url }}"
+                       alt="{{ watch.marca.nombre }} {{ watch.nombre }}"
+                       class="w-full h-72 object-cover opacity-90 group-hover:opacity-100 transition-opacity">
+
+                  <span class="absolute top-4 left-4 bg-yellow-500 text-black text-xs font-bold
+                               px-3 py-1 rounded-full shadow-md z-10">Exclusivo</span>
+
+                  <button type="button"
+                          class="fav-toggle absolute top-4 right-4 grid place-items-center w-9 h-9 rounded-full bg-gray-900/50 backdrop-blur-sm text-white hover:bg-gray-800/60 transition-colors z-20"
+                          data-watch-id="{{ watch.id }}"
+                          data-active="{% if watch.id in favoritos_ids %}1{% else %}0{% endif %}">
+                      <i data-lucide="heart" class="w-5 h-5
+                          {% if watch.id in favoritos_ids %}
+                              fill-current text-rose-500  {% else %}
+                              text-gray-300               {% endif %}
+                      "></i>
+                  </button>
+                </div>
+
+                <div class="p-6 flex flex-col flex-grow">
+                  <span class="text-xs text-yellow-400 uppercase tracking-wide">{{ watch.marca.nombre }}</span>
+                  <h3 class="text-lg font-bold text-white mt-1 mb-3">{{ watch.nombre }}</h3>
+
+                  <ul class="text-sm text-gray-300 space-y-2 mb-4 flex-grow">
+                    {% if watch.descripcion1 %}
+                      <li class="flex items-start">
+                        <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+                        <span>{{ watch.descripcion1 }}</span>
+                      </li>
+                    {% endif %}
+                    {% if watch.descripcion2 %}
+                      <li class="flex items-start">
+                        <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+                        <span>{{ watch.descripcion2 }}</span>
+                      </li>
+                    {% endif %}
+                    {% if watch.descripcion3 %}
+                      <li class="flex items-start">
+                        <i data-lucide="check" class="flex-shrink-0 w-4 h-4 text-yellow-400 mr-2 mt-1"></i>
+                        <span>{{ watch.descripcion3 }}</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+
+                  <div class="flex justify-between items-center mt-auto pt-4 border-t border-white/10">
+                    <p class="text-2xl font-extrabold text-yellow-400">${{ watch.precio|floatformat:0|intcomma }}</p>
+                    <button class="btn-animado add-to-cart text-sm font-semibold py-2 px-4 rounded-md bg-yellow-500 text-black hover:bg-yellow-400 transition-colors"
+                            data-watch-id="{{ watch.id }}"
+                            data-watch-name="{{ watch.nombre }}"
+                            data-watch-brand="{{ watch.marca.nombre }}"
+                            data-watch-price="{{ watch.precio }}"
+                            data-watch-image="{{ watch.imgproducto.url.name }}">
+                        Agregar al carrito
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </a>
+
+        {% else %}
+            {% include "catalog/_product_card.html" with watch=watch %}
+        {% endif %}
+
       {% empty %}
         <div class="col-span-full text-center text-gray-500 py-16">
           No se encontraron relojes con esos filtros.
@@ -29,7 +100,7 @@
       {% endfor %}
     </div>
 
-    {# Paginación #}
+    {# --- PAGINACIÓN --- #}
     {% if page_obj.paginator.num_pages > 1 %}
       <nav class="pagination mt-10 flex items-center justify-center gap-2" aria-label="Pagination">
         {% with qs=querystring %}

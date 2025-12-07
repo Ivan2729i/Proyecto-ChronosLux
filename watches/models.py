@@ -31,15 +31,6 @@ class Categoria(models.Model):
         return f"{self.genero} - {self.material}"
 
 
-class Proveedor(models.Model):
-    nombre_empresa = models.CharField(max_length=50)
-    producto_suministrado = models.TextField(blank=True, null=True)
-    cantidad_producto = models.IntegerField(blank=True, null=True)
-
-    def __str__(self):
-        return self.nombre_empresa
-
-
 class Producto(models.Model):
     nombre = models.CharField(max_length=60)
     precio = models.DecimalField(max_digits=12, decimal_places=2)
