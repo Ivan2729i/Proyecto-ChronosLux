@@ -188,14 +188,17 @@ class SignupForm(UserCreationForm):
         return cleaned_data
 
     def save(self, commit=True):
-        user = super(UserCreationForm, self).save(commit=False)
+        user = super().save(commit=False)
         user.first_name = self.cleaned_data["first_name"].strip()
-        user.last_name  = self.cleaned_data["last_name"].strip()
-        user.email      = self.cleaned_data["email"].strip().lower()
-        if hasattr(user, "username") and not getattr(user, "username", None):
+        user.last_name = self.cleaned_data["last_name"].strip()
+        user.email = self.cleaned_data["email"].strip().lower()
+
+        if hasattr(user, "username"):
             user.username = (user.email.split("@")[0])[:150]
+
         if commit:
             user.save()
+
         return user
 
 # --- FIN: LÓGICA COMPLETA DEL LOGIN ---

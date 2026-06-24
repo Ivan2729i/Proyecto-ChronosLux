@@ -21,26 +21,38 @@ def cart_context(request):
 
 def home_page_context(request):
     # --- SECCIÓN DE RELOJES DESTACADOS ---
-    ids_destacados = [34, 29, 33]
-    relojes_destacados = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(
-        id__in=ids_destacados)
+    relojes_destacados = Producto.objects.select_related(
+        'marca', 'imgproducto', 'categoria'
+    ).filter(
+        fecha_borrado__isnull=True,
+        es_exclusivo=False
+    )[:3]
 
     # --- SECCIÓN DE CATÁLOGO EN HOME ---
-    ids_catalogo_home = [34, 29, 32, 35, 36, 33, 31, 30]
-    relojes_catalogo_home = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(
-        id__in=ids_catalogo_home)
+    relojes_catalogo_home = Producto.objects.select_related(
+        'marca', 'imgproducto', 'categoria'
+    ).filter(
+        fecha_borrado__isnull=True,
+        es_exclusivo=False
+    )[:8]
+
     marcas = Marca.objects.all().order_by('nombre')
 
     # --- SECCIÓN DEL RELOJ EXCLUSIVO ---
-    id_exclusivo = 27
     reloj_exclusivo_destacado = Producto.objects.select_related(
         'marca', 'imgproducto', 'categoria'
-    ).filter(id=id_exclusivo, es_exclusivo=True).first()
+    ).filter(
+        fecha_borrado__isnull=True,
+        es_exclusivo=True
+    ).first()
 
     # --- LÓGICA PARA OBTENER FAVORITOS ---
     favoritos_ids = []
     if request.user.is_authenticated:
-        favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
+        favoritos_ids = [
+            str(producto_id)
+            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
+        ]
 
     return {
         'featured_watches': relojes_destacados,

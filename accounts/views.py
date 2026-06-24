@@ -2,7 +2,7 @@ from django.contrib.auth import login
 from django.contrib.auth import views as auth_views
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
-from watches.models import Domicilio, Pedido, DetallesPedido , Devolucion, Producto, Marca, Favorito
+from watches.models import Domicilio, Pedido, Devolucion
 from .forms import EmailAuthenticationForm, SignupForm
 from django.contrib.auth.decorators import login_required
 from .forms import DomicilioForm
@@ -12,10 +12,26 @@ from django.contrib import messages
 import uuid
 import os
 from watches.context_processors import home_page_context
-
+from bson import ObjectId
+from bson.errors import InvalidId
+from django.http import Http404
+from django.core.exceptions import ValidationError
 
 
 User = get_user_model()
+
+def get_object_or_404_mongo(model_or_queryset, **kwargs):
+    try:
+        return get_object_or_404(model_or_queryset, **kwargs)
+    except ValidationError:
+        raise Http404("ID no válido")
+
+def validar_object_id(valor):
+    try:
+        ObjectId(str(valor))
+        return True
+    except (InvalidId, TypeError):
+        return False
 
 # --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
@@ -108,7 +124,10 @@ def domicilio_create(request):
 
 @login_required
 def domicilio_edit(request, domicilio_id):
-    domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+    if not validar_object_id(domicilio_id):
+        raise Http404("Domicilio no válido")
+
+    domicilio = get_object_or_404_mongo(Domicilio, pk=domicilio_id, usuario=request.user)
 
     if request.method == 'POST':
         form = DomicilioForm(request.POST, instance=domicilio)
@@ -125,7 +144,10 @@ def domicilio_edit(request, domicilio_id):
 
 @login_required
 def domicilio_delete(request, domicilio_id):
-    domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+    if not validar_object_id(domicilio_id):
+        raise Http404("Domicilio no válido")
+
+    domicilio = get_object_or_404_mongo(Domicilio, pk=domicilio_id, usuario=request.user)
 
     if request.method == 'POST':
         domicilio.delete()
@@ -157,9 +179,13 @@ def mis_compras(request):
 
 @login_required
 def solicitar_devolucion(request, pedido_id):
-    pedido = get_object_or_404(Pedido, pk=pedido_id, usuario=request.user)
+    if not validar_object_id(pedido_id):
+        raise Http404("Pedido no válido")
 
-    fecha_limite = pedido.fecha + timedelta(days=90)
+    pedido = get_object_or_404_mongo(Pedido, pk=pedido_id, usuario=request.user)
+
+    fecha_pedido = pedido.fecha or timezone.now()
+    fecha_limite = fecha_pedido + timedelta(days=90)
     if timezone.now() > fecha_limite:
         messages.error(request, 'Este pedido ya no se encuentra dentro del periodo para solicitar una devolución.')
         return redirect('mis_compras')
@@ -174,7 +200,6 @@ def solicitar_devolucion(request, pedido_id):
         elif not motivo:
             messages.error(request, 'Debes escribir un motivo para la devolución.')
         else:
-            # Creamos la devolución
             devolucion = Devolucion(
                 pedido=pedido,
                 descripcion_devolucion=motivo,
@@ -182,7 +207,6 @@ def solicitar_devolucion(request, pedido_id):
             )
 
             if imagen_devolucion:
-                # Generamos un nombre de archivo único para evitar colisiones
                 extension = os.path.splitext(imagen_devolucion.name)[1]
                 nombre_unico = f"{uuid.uuid4()}{extension}"
                 imagen_devolucion.name = nombre_unico
