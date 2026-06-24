@@ -28,24 +28,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!cartItemsContainer) return;
 
-        // --- CAMBIO AQUÍ: Mostrar "Cargando..." antes de pedir datos ---
+        // Mostrar "Cargando..."
         cartItemsContainer.innerHTML = `
             <div class="flex flex-col items-center justify-center h-40 space-y-3">
                 <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-yellow-600"></i>
                 <p class="text-gray-500 text-sm font-medium">Cargando tu carrito...</p>
             </div>
         `;
-        // Renderizamos el icono de carga inmediatamente
         if(window.lucide) window.lucide.createIcons();
 
         try {
-            // Hacemos la petición (Aquí es donde suele tardar)
             const response = await fetch('/api/carrito/');
             const data = await response.json();
 
             if (!cartTotalEl || !checkoutBtn) return;
 
-            // Limpiamos el "Cargando..."
             cartItemsContainer.innerHTML = '';
 
             if (data.cart_items.length === 0) {
@@ -58,6 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkoutBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
             } else {
                 data.cart_items.forEach(item => {
+                    // --- AQUÍ ESTÁ EL CAMBIO VISUAL (INPUT EN VEZ DE SPAN) ---
                     const itemHTML = `
                         <div class="flex items-center space-x-4 mb-4 p-4 border rounded-lg bg-white shadow-sm">
                             <img src="/media/${item.image_url}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
@@ -66,7 +64,14 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <p class="text-gray-600 font-mono text-sm">$${item.price.toFixed(2)}</p>
                                 <div class="flex items-center space-x-2 mt-2">
                                     <button class="quantity-btn w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition-colors" data-id="${item.id}" data-action="decrease">-</button>
-                                    <span class="font-semibold w-6 text-center">${item.quantity}</span>
+
+                                    <input type="number"
+                                           min="1"
+                                           value="${item.quantity}"
+                                           data-id="${item.id}"
+                                           class="manual-quantity-input w-12 text-center border rounded mx-1 p-1 text-sm font-semibold focus:outline-none focus:border-blue-500"
+                                    >
+
                                     <button class="quantity-btn w-8 h-8 flex items-center justify-center border rounded hover:bg-gray-100 transition-colors" data-id="${item.id}" data-action="increase">+</button>
                                     <button class="remove-btn ml-auto text-red-500 text-sm hover:text-red-700 font-semibold transition-colors" data-id="${item.id}">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -78,12 +83,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     cartItemsContainer.innerHTML += itemHTML;
                 });
                 checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
-
-                // Renderizamos los iconos nuevos (basurero, etc)
                 if(window.lucide) window.lucide.createIcons();
             }
 
-            // Actualizamos precios
             cartTotalEl.textContent = `$${data.total_price.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             updateCartIcon(data.total_items);
 
@@ -93,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Event Delegation para todo el carrito
+    // --- 1. LISTENER DE CLICS (Botones +, -, Eliminar, Abrir/Cerrar) ---
     document.body.addEventListener('click', async function(event) {
         const button = event.target.closest('button');
 
@@ -112,15 +114,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!button) return;
 
-        const csrftoken = window.getCookie('csrftoken'); // Usamos la global de main.js
+        const csrftoken = window.getCookie('csrftoken');
 
-        // Agregar (Optimizada para velocidad)
+        // Agregar al carrito (Catálogo)
         if (button.matches('.add-to-cart')) {
             event.preventDefault();
             const watchId = button.dataset.watchId;
             const url = `/carrito/agregar/${watchId}/`;
 
-            // Feedback visual INMEDIATO
             const originalHTML = button.innerHTML;
             button.disabled = true;
             button.innerHTML = '<div class="flex items-center gap-2"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> <span>...</span></div>';
@@ -145,24 +146,23 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        // Eliminar
+        // Eliminar del carrito
         if (button.matches('.remove-btn')) {
             const watchId = button.dataset.id;
-            button.closest('.flex').style.opacity = '0.3'; // Feedback visual
+            button.closest('.flex').style.opacity = '0.3';
             const url = `/carrito/eliminar/${watchId}/`;
             const response = await fetch(url, { method: 'POST', headers: { 'X-CSRFToken': csrftoken } });
             if ((await response.json()).status === 'ok') renderCartModal();
         }
 
-        // Cantidad
+        // Botones + y - (Cantidad)
         if (button.matches('.quantity-btn')) {
             const watchId = button.dataset.id;
             const action = button.dataset.action;
             const url = `/carrito/actualizar/${watchId}/`;
 
-            // Bloquear botones temporalmente
             const container = button.parentElement;
-            container.querySelectorAll('button').forEach(b => b.disabled = true);
+            container.querySelectorAll('button, input').forEach(el => el.disabled = true); // Bloqueamos todo
 
             const response = await fetch(url, {
                 method: 'POST',
@@ -170,6 +170,49 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify({ action: action })
             });
             if ((await response.json()).status === 'ok') renderCartModal();
+        }
+    });
+
+    // --- 2. LISTENER DE CAMBIOS (INPUT MANUAL) ---
+    // Este detecta cuando escribes un número y das Enter o sales de la casilla
+    document.body.addEventListener('change', async function(event) {
+        if (event.target.matches('.manual-quantity-input')) {
+            const input = event.target;
+            const watchId = input.dataset.id;
+            let newQuantity = parseInt(input.value);
+            const csrftoken = window.getCookie('csrftoken');
+
+            // PROTECCIÓN: Si es inválido o menor a 1, forzamos a 1
+            if (newQuantity < 1 || isNaN(newQuantity)) {
+                newQuantity = 1;
+            }
+
+            // Deshabilitar input visualmente mientras carga
+            input.disabled = true;
+            input.classList.add('opacity-50');
+
+            const url = `/carrito/actualizar/${watchId}/`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'manual',
+                        quantity: newQuantity
+                    })
+                });
+
+                if ((await response.json()).status === 'ok') {
+                    renderCartModal(); // Recargar carrito con nuevos totales
+                }
+            } catch (error) {
+                console.error('Error actualizando cantidad', error);
+                input.disabled = false;
+            }
         }
     });
 });

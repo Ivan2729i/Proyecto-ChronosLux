@@ -281,15 +281,20 @@ def get_cart_data(request):
 
 def update_cart_quantity(request, producto_id):
     if request.method == 'POST':
-        action = json.loads(request.body).get('action')
+        body_data = json.loads(request.body)
+        action = body_data.get('action')
+        new_quantity = int(body_data.get('quantity', 1))
 
         if request.user.is_authenticated:
             cart = _get_user_cart(request)
             detalle = get_object_or_404(DetalleCarrito, carrito=cart, producto_id=producto_id)
+
             if action == 'increase':
                 detalle.cantidad += 1
             elif action == 'decrease':
                 detalle.cantidad -= 1
+            elif action == 'manual':
+                detalle.cantidad = new_quantity
 
             if detalle.cantidad <= 0:
                 detalle.delete()
@@ -306,6 +311,12 @@ def update_cart_quantity(request, producto_id):
                     cart_session[pid_str]['quantity'] -= 1
                     if cart_session[pid_str]['quantity'] <= 0:
                         del cart_session[pid_str]
+                elif action == 'manual':
+                    if new_quantity <= 0:
+                        del cart_session[pid_str]
+                    else:
+                        cart_session[pid_str]['quantity'] = new_quantity
+
                 request.session['cart'] = cart_session
 
     return JsonResponse({'status': 'ok'})

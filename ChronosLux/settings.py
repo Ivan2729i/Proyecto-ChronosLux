@@ -70,6 +70,7 @@ WSGI_APPLICATION = 'ChronosLux.wsgi.application'
 
 # Database
 
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -83,8 +84,15 @@ DATABASES = {
         },
     }
 }
+"""
 
-
+DATABASES = {
+    "default": {
+        "ENGINE": "django_mongodb_backend",
+        "HOST": os.getenv("MONGODB_URI"),
+        "NAME": os.getenv("MONGODB_NAME", "chronoslux"),
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -139,4 +147,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+
