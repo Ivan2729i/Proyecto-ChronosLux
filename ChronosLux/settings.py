@@ -23,13 +23,14 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    'ChronosLux.apps.MongoAdminConfig',
+    'ChronosLux.apps.MongoAuthConfig',
+    'ChronosLux.apps.MongoContentTypesConfig',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_mongodb_backend',
     'watches',
     'accounts',
     'proveedores',
@@ -149,4 +150,11 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+
+MIGRATION_MODULES = {
+    "admin": "mongo_migrations.admin",
+    "auth": "mongo_migrations.auth",
+    "contenttypes": "mongo_migrations.contenttypes",
+}
 
