@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
-from django.http import JsonResponse, StreamingHttpResponse
+from django.http import JsonResponse, StreamingHttpResponse, Http404
+from django.core.exceptions import ValidationError
 import json
 from .forms import ProductoForm, ResenaForm
 from django.db.models import Q, Sum
@@ -17,6 +18,12 @@ from django.db.models import Case, When, Value, IntegerField
 from django.conf import settings
 import google.generativeai as genai
 
+
+def get_object_or_404_mongo(model_or_queryset, **kwargs):
+    try:
+        return get_object_or_404(model_or_queryset, **kwargs)
+    except ValidationError:
+        raise Http404("ID no válido")
 
 # --- INICIO: LÓGICA COMPLETA DE LA VISTA DE HOME ---
 
@@ -89,7 +96,10 @@ def catalog(request):
 
     favoritos_ids = []
     if request.user.is_authenticated:
-        favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
+        favoritos_ids = [
+            str(producto_id)
+            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
+        ]
 
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
@@ -120,7 +130,7 @@ def catalog(request):
 
 
 def product_detail(request, producto_id):
-    producto = get_object_or_404(
+    producto = get_object_or_404_mongo(
         Producto.objects.select_related('categoria', 'marca', 'imgproducto'),
         pk=producto_id
     )
@@ -187,10 +197,9 @@ def _get_user_cart(request):
     )
 
     # Si el carrito ya existía, comprueba si ha expirado.
-    if not created and cart.fecha_expiracion < timezone.now():
+    if not created and cart.fecha_expiracion and cart.fecha_expiracion < timezone.now():
         cart.estado = 'expirado'
         cart.save()
-        # Y crea uno nuevo.
         cart = Carrito.objects.create(
             usuario=request.user,
             fecha_creacion=timezone.now(),
@@ -200,7 +209,7 @@ def _get_user_cart(request):
 
 
 def add_to_cart(request, producto_id):
-    producto = get_object_or_404(Producto, pk=producto_id)
+    producto = get_object_or_404_mongo(Producto, pk=producto_id)
     total_items = 0
 
     if request.user.is_authenticated:
@@ -250,7 +259,7 @@ def get_cart_data(request):
                                                                                   'producto__imgproducto')
             for item in detalles:
                 cart_items.append({
-                    'id': item.producto.id,
+                    'id': str(item.producto.id),
                     'name': item.producto.nombre,
                     'brand': item.producto.marca.nombre,
                     'quantity': item.cantidad,
@@ -287,7 +296,7 @@ def update_cart_quantity(request, producto_id):
 
         if request.user.is_authenticated:
             cart = _get_user_cart(request)
-            detalle = get_object_or_404(DetalleCarrito, carrito=cart, producto_id=producto_id)
+            detalle = get_object_or_404_mongo(DetalleCarrito, carrito=cart, producto_id=producto_id)
 
             if action == 'increase':
                 detalle.cantidad += 1
@@ -383,7 +392,7 @@ def crear_producto(request):
 
 
 def editar_producto(request, producto_id):
-    producto = get_object_or_404(Producto, pk=producto_id)
+    producto = get_object_or_404_mongo(Producto, pk=producto_id)
 
     if request.method == 'POST':
         form = ProductoForm(request.POST, request.FILES, instance=producto)
@@ -429,7 +438,7 @@ def editar_producto(request, producto_id):
 
 
 def eliminar_producto(request, producto_id):
-    producto = get_object_or_404(Producto, pk=producto_id)
+    producto = get_object_or_404_mongo(Producto, pk=producto_id)
 
     if request.method == 'POST':
         if hasattr(producto, 'imgproducto'):
@@ -480,7 +489,10 @@ def exclusivos_catalog(request):
 
     favoritos_ids = []
     if request.user.is_authenticated:
-        favoritos_ids = list(Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True))
+        favoritos_ids = [
+            str(producto_id)
+            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
+        ]
 
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
@@ -524,7 +536,7 @@ def checkout_page(request):
                                                                               'producto__imgproducto')
         for item in detalles:
             cart_items.append({
-                'id': item.producto.id,
+                'id': str(item.producto.id),
                 'name': item.producto.nombre,
                 'brand': item.producto.marca.nombre,
                 'quantity': item.cantidad,
@@ -571,7 +583,7 @@ def place_order(request):
                 )
                 return redirect('checkout_page')
 
-        domicilio = get_object_or_404(Domicilio, pk=domicilio_id, usuario=request.user)
+        domicilio = get_object_or_404_mongo(Domicilio, pk=domicilio_id, usuario=request.user)
         total_price = detalles_del_carrito.aggregate(total=Sum('subtotal'))['total'] or 0
 
         # Crear el Envío
@@ -617,13 +629,13 @@ def place_order(request):
         cart.save()
 
         # Redirigir a confirmación
-        return redirect('order_confirmation', order_id=pedido.id)
+        return redirect('order_confirmation', order_id=str(pedido.id))
 
     return redirect('home')
 
 @login_required
 def order_confirmation(request, order_id):
-    pedido = get_object_or_404(Pedido, pk=order_id, usuario=request.user)
+    pedido = get_object_or_404_mongo(Pedido, pk=order_id, usuario=request.user)
     context = {
         'pedido': pedido
     }
@@ -636,7 +648,7 @@ def order_confirmation(request, order_id):
 @login_required
 def toggle_favorite(request, producto_id):
     if request.method == 'POST':
-        producto = get_object_or_404(Producto, pk=producto_id)
+        producto = get_object_or_404_mongo(Producto, pk=producto_id)
 
         favorito, created = Favorito.objects.get_or_create(usuario=request.user, producto=producto)
 
@@ -653,13 +665,17 @@ def toggle_favorite(request, producto_id):
 
 @login_required
 def favoritos_list(request):
-    favoritos_ids = Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
-    productos_favoritos = Producto.objects.select_related('marca', 'imgproducto', 'categoria').filter(
-        pk__in=favoritos_ids)
+    favoritos_qs = Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
+
+    productos_favoritos = Producto.objects.select_related(
+        'marca', 'imgproducto', 'categoria'
+    ).filter(pk__in=favoritos_qs)
+
+    favoritos_ids = [str(producto_id) for producto_id in favoritos_qs]
 
     context = {
         'productos_favoritos': productos_favoritos,
-        'favoritos_ids': list(favoritos_ids)
+        'favoritos_ids': favoritos_ids
     }
     return render(request, 'favoritos.html', context)
 
@@ -674,7 +690,7 @@ def gestionar_devoluciones(request):
         nuevo_estado = request.POST.get('nuevo_estado')
 
         if devolucion_id and nuevo_estado in ['aceptada', 'rechazada']:
-            devolucion = get_object_or_404(Devolucion, pk=devolucion_id)
+            devolucion = get_object_or_404_mongo(Devolucion, pk=devolucion_id)
             devolucion.estado = nuevo_estado
             devolucion.save()
             return redirect('gestionar_devoluciones')

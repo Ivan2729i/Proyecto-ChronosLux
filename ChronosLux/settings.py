@@ -31,9 +31,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django_mongodb_backend',
-    'watches',
-    'accounts',
-    'proveedores',
+    'accounts.apps.AccountsConfig',
+    'proveedores.apps.ProveedoresConfig',
+    'watches.apps.WatchesConfig',
 ]
 
 MIDDLEWARE = [
