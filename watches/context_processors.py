@@ -43,7 +43,9 @@ def home_page_context(request):
         'marca', 'imgproducto', 'categoria'
     ).filter(
         fecha_borrado__isnull=True,
-        es_exclusivo=True
+        es_exclusivo=True,
+        nombre__iexact="Royal Oak",
+        marca__nombre__iexact="Audemars Piguet"
     ).first()
 
     # --- LÓGICA PARA OBTENER FAVORITOS ---

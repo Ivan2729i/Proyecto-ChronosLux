@@ -16,7 +16,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from .context_processors import home_page_context
 from django.db.models import Case, When, Value, IntegerField
 from django.conf import settings
-import google.generativeai as genai
+from django.http import JsonResponse, StreamingHttpResponse
+from openai import OpenAI, RateLimitError, APIError
+from watches.models import Producto
 
 
 def get_object_or_404_mongo(model_or_queryset, **kwargs):
@@ -706,72 +708,140 @@ def gestionar_devoluciones(request):
 
 # --- INICIO: LÓGICA COMPLETA PARA CHATBOT ---
 
-try:
-    genai.configure(api_key=settings.GEMINI_API_KEY)
-except AttributeError:
-    print("ERROR: La clave GEMINI_API_KEY no se encontró en settings.py")
-    genai.configure(api_key="CLAVE_NO_CONFIGURADA")
-
 INSTRUCCIONES_DEL_SISTEMA = """
 Eres ChronoBot, un asistente de ventas experto y amigable de la tienda de relojes de lujo ChronosLux.
+
 Tu misión es responder las preguntas del cliente basándote EXCLUSIVAMENTE en la información de la base de datos que te proporciono a continuación.
 NO inventes información. Si el cliente pregunta por algo que no está en la lista, infórmale amablemente que no lo manejas.
+
 Sé conciso y servicial.
-Si preguntan sobre devoluciones, los clientes tendrán un plazo maximo de 3 meses para hacer la devolución de un pedido.
-Si preguntan para hacer compras puedes decirle que visten el apartado de catalogo ya sea el normal o el de exclusivos para ver la variedad de relojes que tenemos,
-los metodos de pago que manejamos son 3 paypal, tarjeta de credito y debito, los envios son gratis.
-**Formatea tus respuestas usando Markdown. Para listas de productos, usa viñetas (*) y resalta los nombres de los relojes en negrita (**Nombre del Reloj**).**
+
+Si preguntan sobre devoluciones, los clientes tendrán un plazo máximo de 3 meses para hacer la devolución de un pedido.
+Si preguntan cómo comprar, puedes decirles que visiten el apartado de catálogo normal o el de exclusivos para ver la variedad de relojes disponibles.
+Los métodos de pago que manejamos son PayPal, tarjeta de crédito y tarjeta de débito.
+Los envíos son gratis.
+
+Formatea tus respuestas usando Markdown.
+Para listas de productos, usa viñetas (*) y resalta los nombres de los relojes en negrita, por ejemplo: **Nombre del Reloj**.
 """
 
-modelo_gemini = genai.GenerativeModel(
-    model_name="models/gemini-flash-latest",
-    system_instruction=INSTRUCCIONES_DEL_SISTEMA
+
+client_groq = OpenAI(
+    api_key=settings.GROQ_API_KEY,
+    base_url="https://api.groq.com/openai/v1"
 )
+
+
+def construir_info_bdd():
+    productos_en_bdd = Producto.objects.filter(
+        stock__gt=0,
+        fecha_borrado__isnull=True
+    )
+
+    info_bdd_texto = "--- INFORMACIÓN DE LA BASE DE DATOS (Inventario Actual) ---\n"
+
+    if productos_en_bdd:
+        for producto in productos_en_bdd:
+            info_bdd_texto += (
+                f"* **{producto.marca.nombre} {producto.nombre}**: "
+                f"Precio: ${producto.precio:,.2f} MXN. "
+                f"Material: {producto.categoria.material}. "
+                f"Género: {producto.categoria.genero}. "
+                f"Stock: {producto.stock}.\n"
+            )
+    else:
+        info_bdd_texto += "Actualmente no tenemos productos disponibles en la tienda.\n"
+
+    info_bdd_texto += "--------------------------------------------------------\n"
+
+    return info_bdd_texto
+
 
 def chatbot_api(request):
     if request.method != 'POST':
-        return JsonResponse({'error': 'Esta ruta solo acepta solicitudes POST.'}, status=405)
+        return JsonResponse(
+            {'error': 'Esta ruta solo acepta solicitudes POST.'},
+            status=405
+        )
+
+    if not settings.GROQ_API_KEY:
+        return JsonResponse(
+            {'error': 'No está configurada la clave GROQ_API_KEY.'},
+            status=500
+        )
 
     try:
         data = json.loads(request.body)
         user_message = data.get('message', '').strip()
 
         if not user_message:
-            return JsonResponse({'error': 'No se recibió ningún mensaje.'}, status=400)
+            return JsonResponse(
+                {'error': 'No se recibió ningún mensaje.'},
+                status=400
+            )
 
+        info_bdd_texto = construir_info_bdd()
 
-        productos_en_bdd = Producto.objects.select_related('marca', 'categoria').filter(stock__gt=0,
-                                                                                        fecha_borrado__isnull=True)
+        prompt_final = f"""
+{info_bdd_texto}
 
-        info_bdd_texto = "--- INFORMACIÓN DE LA BASE DE DATOS (Inventario Actual) ---\n"
-        if productos_en_bdd:
-            for producto in productos_en_bdd:
-                info_bdd_texto += (
-                    f"* **{producto.marca.nombre} {producto.nombre}**: "
-                    f"Precio: ${producto.precio:,.2f} MXN. "
-                    f"Material: {producto.categoria.material}. "
-                    f"Género: {producto.categoria.genero}.\n"
-                )
-        else:
-            info_bdd_texto += "Actualmente no tenemos productos disponibles en la tienda.\n"
+PREGUNTA DEL CLIENTE:
+"{user_message}"
+"""
 
-        info_bdd_texto += "--------------------------------------------------------\n"
-
-        prompt_final = f"{info_bdd_texto}\nPREGUNTA DEL CLIENTE: \"{user_message}\""
-
-        chat = modelo_gemini.start_chat(history=[])
-        respuesta_stream = chat.send_message(prompt_final, stream=True)
+        respuesta_stream = client_groq.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": INSTRUCCIONES_DEL_SISTEMA
+                },
+                {
+                    "role": "user",
+                    "content": prompt_final
+                }
+            ],
+            temperature=0.4,
+            max_tokens=700,
+            stream=True
+        )
 
         def stream_generator():
             for chunk in respuesta_stream:
-                yield chunk.text
+                contenido = chunk.choices[0].delta.content
+                if contenido:
+                    yield contenido
 
-        return StreamingHttpResponse(stream_generator(), content_type='text/plain; charset=utf-8')
+        return StreamingHttpResponse(
+            stream_generator(),
+            content_type='text/plain; charset=utf-8'
+        )
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'El cuerpo de la solicitud no es un JSON válido.'}, status=400)
+        return JsonResponse(
+            {'error': 'El cuerpo de la solicitud no es un JSON válido.'},
+            status=400
+        )
+
+    except RateLimitError as e:
+        print(f"Rate limit de Groq excedido: {e}")
+        return JsonResponse(
+            {'error': 'ChronoBot recibió demasiadas preguntas en poco tiempo. Intenta de nuevo en unos segundos.'},
+            status=429
+        )
+
+    except APIError as e:
+        print(f"Error de API Groq: {e}")
+        return JsonResponse(
+            {'error': 'El servicio de inteligencia artificial no respondió correctamente.'},
+            status=502
+        )
+
     except Exception as e:
         print(f"Error en la vista del chatbot: {e}")
-        return JsonResponse({'error': 'Ocurrió un error interno en el servidor.'}, status=500)
+        return JsonResponse(
+            {'error': 'Ocurrió un error interno en el servidor.'},
+            status=500
+        )
 
 # --- FIN: LÓGICA COMPLETA PARA CHATBOT ---

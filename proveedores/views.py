@@ -2,25 +2,40 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from watches.models import Producto
-from .models import Compra, DetalleCompra
+from .models import Proveedor, Compra, DetalleCompra
 from django.contrib import messages
+
+
+def obtener_proveedor_o_403(user):
+    proveedor = Proveedor.objects.filter(user=user).first()
+    pertenece_grupo = user.groups.filter(name='Proveedores').exists()
+
+    if not proveedor and not pertenece_grupo:
+        raise PermissionDenied
+
+    if not proveedor:
+        raise PermissionDenied("El usuario pertenece al grupo Proveedores, pero no tiene perfil de proveedor.")
+
+    return proveedor
 
 
 @login_required
 def portal_proveedor(request):
-    if not request.user.groups.filter(name='Proveedores').exists():
-        raise PermissionDenied
+    proveedor = obtener_proveedor_o_403(request.user)
+
+    compras = Compra.objects.filter(proveedor=proveedor).order_by('-fecha_compra')
 
     context = {
-        'proveedor': request.user.proveedor
+        'proveedor': proveedor,
+        'compras': compras,
     }
+
     return render(request, 'proveedores/portal.html', context)
 
 
 @login_required
 def crear_compra(request):
-    if not request.user.groups.filter(name='Proveedores').exists():
-        raise PermissionDenied
+    proveedor = obtener_proveedor_o_403(request.user)
 
     if request.method == 'POST':
         proveedor = request.user.proveedor
@@ -85,8 +100,7 @@ def crear_compra(request):
 
 @login_required
 def historial_compras(request):
-    if not request.user.groups.filter(name='Proveedores').exists():
-        raise PermissionDenied
+    proveedor = obtener_proveedor_o_403(request.user)
 
     compras = Compra.objects.filter(proveedor=request.user.proveedor).order_by('-fecha_compra')
 
