@@ -37,7 +37,7 @@ Este proyecto implementa un flujo de eCommerce completo, incluyendo:
 ## 🛠️ Tecnologías Utilizadas
 
 * **Backend:** Python, Django
-* **Base de Datos:** MySQL
+* **Base de Datos:** MongoDB
 * **Frontend:** HTML, CSS, Tailwind CSS, JavaScript
 * **Librerías Clave de Python:**
     * `Pillow` (para el manejo de imágenes)
@@ -51,7 +51,7 @@ Sigue estos pasos para correr el proyecto en un entorno local.
 ### Prerrequisitos
 * Python 3.x
 * pip (gestor de paquetes de Python)
-* Un servidor de MySQL
+* Un servidor de MongoDB
 
 ### Pasos
 
@@ -77,8 +77,8 @@ Sigue estos pasos para correr el proyecto en un entorno local.
     ```
 
 4.  **Configura la base de datos:**
-    * Crea una base de datos en MySQL llamada `chronoslux`.
-    * En el archivo `.env`, actualiza los datos de `DATABASES` con tu usuario y contraseña de MySQL.
+    * Crea una base de datos en MongoDB llamada `chronoslux`.
+    * En el archivo `.env`, actualiza los datos de `DATABASES` con tu usuario y contraseña de MongoDB.
 
 5.  **Aplica las migraciones:**
     ```bash
