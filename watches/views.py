@@ -2,7 +2,6 @@ import os
 import uuid
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
-from django.core.paginator import Paginator
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
 from django.http import JsonResponse, StreamingHttpResponse, Http404
 from django.core.exceptions import ValidationError
@@ -107,14 +106,8 @@ def catalog(request):
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
     marcas_disponibles = Marca.objects.all().order_by('nombre')
 
-    # Paginación
-    page_number = request.GET.get('page') or 1
-    paginator = Paginator(items, 12)
-    page_obj = paginator.get_page(page_number)
-
     return render(request, 'catalog.html', {
-        'page_obj': page_obj,
-        'catalog_watches': page_obj.object_list,
+        'catalog_watches': items,
         'querystring': request.GET.urlencode(),
         'search_query': query,
         'current': {
@@ -500,12 +493,8 @@ def exclusivos_catalog(request):
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
     marcas_disponibles = Marca.objects.all().order_by('nombre')
 
-    paginator = Paginator(items, 12)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-
     context = {
-        'productos_exclusivos': page_obj,
+        'productos_exclusivos': items,
         'querystring': request.GET.urlencode(),
         'current': {
             'type': tipo_filtro or 'all',
@@ -673,7 +662,7 @@ def favoritos_list(request):
         'marca', 'imgproducto', 'categoria'
     ).filter(pk__in=favoritos_qs)
 
-    favoritos_ids = [str(producto_id) for producto_id in favoritos_qs]
+    favoritos_ids = list(favoritos_qs)
 
     context = {
         'productos_favoritos': productos_favoritos,
