@@ -50,11 +50,13 @@ def home_page_context(request):
 
     # --- LÓGICA PARA OBTENER FAVORITOS ---
     favoritos_ids = []
+
     if request.user.is_authenticated:
-        favoritos_ids = [
-            str(producto_id)
-            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
-        ]
+        favoritos_ids = list(
+            Favorito.objects.filter(
+                usuario=request.user
+            ).values_list('producto_id', flat=True)
+        )
 
     return {
         'featured_watches': relojes_destacados,
