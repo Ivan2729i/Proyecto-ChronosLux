@@ -4,99 +4,688 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-12">
+
     <h1 class="font-serif font-black text-4xl md:text-4xl text-black mb-4 text-center">
-            Finalizar <span class="custom-text-secondary">Compra</span>
+        Finalizar <span class="custom-text-secondary">Compra</span>
     </h1>
 
-    <form action="{% url 'place_order' %}" method="post">
+    <form
+        id="checkout-form"
+        action="{% url 'place_order' %}"
+        method="post"
+    >
         {% csrf_token %}
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+
             <div class="lg:col-span-2 space-y-8">
 
+                <!-- Resumen del pedido -->
                 <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Resumen de tu pedido</h2>
+                    <h2 class="text-xl font-semibold mb-4">
+                        Resumen de tu pedido
+                    </h2>
+
                     <div id="checkout-cart-items">
                         {% for item in cart_items %}
                         <div class="flex items-center space-x-4 py-4 border-b last:border-b-0">
-                            <img src="/media/{{ item.image_url }}" alt="{{ item.name }}" class="w-20 h-20 object-cover rounded-md">
+
+                            <img
+                                src="/media/{{ item.image_url }}"
+                                alt="{{ item.name }}"
+                                class="w-20 h-20 object-cover rounded-md"
+                            >
+
                             <div class="flex-1">
-                                <h3 class="font-semibold">{{ item.brand }} {{ item.name }}</h3>
-                                <p class="text-gray-600">${{ item.price|floatformat:2|intcomma }}</p>
+                                <h3 class="font-semibold">
+                                    {{ item.brand }} {{ item.name }}
+                                </h3>
+
+                                <p class="text-gray-600">
+                                    ${{ item.price|floatformat:2|intcomma }}
+                                </p>
                             </div>
+
                             <div class="text-right">
-                                <p class="text-gray-500 text-sm">Cantidad:</p>
-                                <p class="font-semibold text-lg">{{ item.quantity }}</p>
+                                <p class="text-gray-500 text-sm">
+                                    Cantidad:
+                                </p>
+
+                                <p class="font-semibold text-lg">
+                                    {{ item.quantity }}
+                                </p>
                             </div>
+
                         </div>
+                        {% empty %}
+                        <p class="text-gray-500">
+                            No hay productos en el carrito.
+                        </p>
                         {% endfor %}
                     </div>
                 </div>
 
+                <!-- Dirección -->
                 <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Dirección de Envío</h2>
-                    {% if domicilios %}
-                        <div class="space-y-4">
-                            {% for domicilio in domicilios %}
-                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
-                                <input type="radio" name="domicilio_seleccionado" value="{{ domicilio.id }}" class="mr-4" {% if forloop.first %}checked{% endif %} required>
-                                <div>
-                                    <p class="font-semibold">{{ domicilio.calle }} #{{ domicilio.num_ext }}</p>
-                                    <p class="text-sm text-gray-600">{{ domicilio.colonia }}, {{ domicilio.cp }}</p>
-                                </div>
-                            </label>
-                            {% endfor %}
+
+                    <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                        <h2 class="text-xl font-semibold">
+                            Dirección de Envío
+                        </h2>
+
+                        <button
+                            type="button"
+                            data-open-address-modal
+                            class="text-blue-700 hover:text-blue-900 hover:underline font-semibold"
+                        >
+                            Agregar dirección
+                        </button>
+                    </div>
+
+                    <div id="address-list" class="space-y-4">
+
+                        {% for domicilio in domicilios %}
+                        <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
+
+                            <input
+                                type="radio"
+                                name="domicilio_seleccionado"
+                                value="{{ domicilio.id }}"
+                                class="mr-4"
+                                {% if forloop.first %}checked{% endif %}
+                                required
+                            >
+
+                            <div>
+                                <p class="font-semibold">
+                                    {{ domicilio.calle }}
+                                    #{{ domicilio.num_ext }}
+
+                                    {% if domicilio.num_int %}
+                                        Int. {{ domicilio.num_int }}
+                                    {% endif %}
+                                </p>
+
+                                <p class="text-sm text-gray-600">
+                                    {{ domicilio.colonia }},
+                                    {{ domicilio.estado }},
+                                    C.P. {{ domicilio.cp }}
+                                </p>
+                            </div>
+
+                        </label>
+
+                        {% empty %}
+                        <div
+                            id="no-address-message"
+                            class="p-4 border border-yellow-300 bg-yellow-50 rounded-lg"
+                        >
+                            <p class="text-gray-800">
+                                No tienes ninguna dirección guardada.
+                            </p>
+
+                            <button
+                                type="button"
+                                data-open-address-modal
+                                class="btn-animado mt-3 custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md"
+                            >
+                                Agregar Dirección
+                            </button>
                         </div>
-                        <a href="{% url 'domicilio_create' %}" class="mt-4 inline-block text-blue-600 hover:underline">Agregar otra dirección</a>
-                    {% else %}
-                        <p>No tienes ninguna dirección guardada. Por favor, agrega una para continuar.</p>
-                        <a href="{% url 'domicilio_create' %}" class="btn-animado mt-2">Agregar Dirección</a>
-                    {% endif %}
+                        {% endfor %}
+
+                    </div>
                 </div>
 
+                <!-- Método de pago -->
                 <div class="bg-white p-6 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold mb-4">Método de Pago</h2>
+
+                    <h2 class="text-xl font-semibold mb-4">
+                        Método de Pago
+                    </h2>
+
+                    <p class="text-sm text-gray-500 mb-5">
+                        Estos datos son únicamente para la simulación.
+                        No ingreses información bancaria ni contraseñas reales.
+                    </p>
+
                     <div class="space-y-4">
+
                         <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
-                            <input type="radio" name="metodo_pago" value="tarjeta_credito" class="mr-4" checked required>
+                            <input
+                                type="radio"
+                                name="metodo_pago"
+                                value="tarjeta_credito"
+                                class="mr-4"
+                                checked
+                                required
+                            >
                             <span>Tarjeta de Crédito</span>
                         </label>
+
                         <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
-                            <input type="radio" name="metodo_pago" value="tarjeta_debito" class="mr-4" required>
+                            <input
+                                type="radio"
+                                name="metodo_pago"
+                                value="tarjeta_debito"
+                                class="mr-4"
+                                required
+                            >
                             <span>Tarjeta de Débito</span>
                         </label>
+
                         <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:border-blue-500">
-                            <input type="radio" name="metodo_pago" value="paypal" class="mr-4" required>
+                            <input
+                                type="radio"
+                                name="metodo_pago"
+                                value="paypal"
+                                class="mr-4"
+                                required
+                            >
                             <span>PayPal</span>
                         </label>
+
                     </div>
+
+                    <!-- Campos de tarjeta -->
+                    <div
+                        id="card-payment-fields"
+                        class="mt-6 border-t pt-6"
+                    >
+                        <h3 class="font-semibold text-lg mb-4">
+                            Datos de la tarjeta
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                            <div class="md:col-span-2">
+                                <label
+                                    for="numero_tarjeta"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Número de tarjeta
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="numero_tarjeta"
+                                    name="numero_tarjeta"
+                                    inputmode="numeric"
+                                    maxlength="19"
+                                    autocomplete="cc-number"
+                                    placeholder="0000 0000 0000 0000"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                >
+
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Ingresa los 16 dígitos de la tarjeta.
+                                </p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label
+                                    for="nombre_titular"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Nombre del titular
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="nombre_titular"
+                                    name="nombre_titular"
+                                    minlength="3"
+                                    autocomplete="cc-name"
+                                    placeholder="Nombre y apellido"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                >
+
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Debe contener al menos dos palabras.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label
+                                    for="fecha_vencimiento_mes"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Mes de vencimiento
+                                </label>
+
+                                <select
+                                    id="fecha_vencimiento_mes"
+                                    name="fecha_vencimiento_mes"
+                                    autocomplete="cc-exp-month"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                >
+                                    <option value="">Mes</option>
+                                    <option value="01">01</option>
+                                    <option value="02">02</option>
+                                    <option value="03">03</option>
+                                    <option value="04">04</option>
+                                    <option value="05">05</option>
+                                    <option value="06">06</option>
+                                    <option value="07">07</option>
+                                    <option value="08">08</option>
+                                    <option value="09">09</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label
+                                    for="fecha_vencimiento_anio"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Año de vencimiento
+                                </label>
+
+                                <select
+                                    id="fecha_vencimiento_anio"
+                                    name="fecha_vencimiento_anio"
+                                    autocomplete="cc-exp-year"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                >
+                                    <option value="">Año</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label
+                                    for="cvv"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    CVV
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="cvv"
+                                    name="cvv"
+                                    inputmode="numeric"
+                                    maxlength="3"
+                                    pattern="[0-9]{3}"
+                                    autocomplete="cc-csc"
+                                    placeholder="123"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                >
+
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Debe contener exactamente 3 números.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Campos de PayPal -->
+                    <div
+                        id="paypal-payment-fields"
+                        class="hidden mt-6 border-t pt-6"
+                    >
+                        <h3 class="font-semibold text-lg mb-4">
+                            Datos de PayPal
+                        </h3>
+
+                        <div class="space-y-4">
+
+                            <div>
+                                <label
+                                    for="paypal_correo"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Correo electrónico
+                                </label>
+
+                                <input
+                                    type="email"
+                                    id="paypal_correo"
+                                    name="paypal_correo"
+                                    placeholder="correo@ejemplo.com"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    disabled
+                                >
+                            </div>
+
+                            <div>
+                                <label
+                                    for="paypal_password"
+                                    class="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Contraseña
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="paypal_password"
+                                    name="paypal_password"
+                                    placeholder="Contraseña123."
+                                    autocomplete="off"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    disabled
+                                >
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
 
+            <!-- Total -->
             <div class="bg-white p-6 rounded-lg shadow-md h-fit">
-                <h2 class="text-xl font-semibold mb-4">Total</h2>
+
+                <h2 class="text-xl font-semibold mb-4">
+                    Total
+                </h2>
+
                 <div class="flex justify-between mb-2">
                     <span>Subtotal:</span>
-                    <span id="subtotal-value">${{ total_price|floatformat:2|intcomma }}</span>
+                    <span id="subtotal-value">
+                        ${{ total_price|floatformat:2|intcomma }}
+                    </span>
                 </div>
+
                 <div class="flex justify-between mb-4">
                     <span>Envío:</span>
                     <span>Gratis</span>
                 </div>
+
                 <div class="border-t pt-4 flex justify-between font-bold text-lg">
                     <span>Total a pagar:</span>
-                    <span id="grand-total-value">${{ total_price|floatformat:2|intcomma }}</span>
+
+                    <span id="grand-total-value">
+                        ${{ total_price|floatformat:2|intcomma }}
+                    </span>
                 </div>
+
                 <div class="mt-6">
-                    <button type="submit" class="w-full btn-animado" {% if not domicilios or not cart_items %}disabled{% endif %}>
+                    <button
+                        id="place-order-button"
+                        type="submit"
+                        data-has-cart="{% if cart_items %}true{% else %}false{% endif %}"
+                        class="w-full btn-animado disabled:opacity-50 disabled:cursor-not-allowed"
+                        {% if not domicilios or not cart_items %}disabled{% endif %}
+                    >
                         Realizar Pedido
                     </button>
+
                     {% if not domicilios %}
-                        <p class="text-xs text-center text-red-600 mt-2">Debes agregar una dirección para continuar.</p>
+                    <p
+                        id="no-address-warning"
+                        class="text-xs text-center text-red-600 mt-2"
+                    >
+                        Debes agregar una dirección para continuar.
+                    </p>
                     {% endif %}
                 </div>
+
             </div>
+
         </div>
     </form>
 </div>
+
+<!-- Modal de domicilio -->
+<div
+    id="address-modal"
+    class="hidden fixed inset-0 z-50 items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="address-modal-title"
+>
+    <div
+        class="absolute inset-0 bg-black bg-opacity-60"
+        data-close-address-modal
+    ></div>
+
+    <div class="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-lg shadow-xl p-6">
+
+        <div class="flex justify-between items-center mb-6">
+            <h2
+                id="address-modal-title"
+                class="font-serif font-black text-2xl custom-text-foreground"
+            >
+                Agregar
+                <span class="custom-text-secondary">Domicilio</span>
+            </h2>
+
+            <button
+                type="button"
+                data-close-address-modal
+                class="text-3xl leading-none text-gray-500 hover:text-gray-900"
+                aria-label="Cerrar"
+            >
+                &times;
+            </button>
+        </div>
+
+        <div
+            id="address-general-error"
+            class="hidden mb-4 p-3 bg-red-50 border border-red-300 text-red-700 rounded-md"
+        ></div>
+
+        <form
+            id="address-form"
+            action="{% url 'domicilio_create' %}"
+            method="post"
+            class="space-y-4"
+        >
+            {% csrf_token %}
+
+            <div>
+                <label
+                    for="modal_telefono"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                    Teléfono
+                </label>
+
+                <input
+                    type="text"
+                    id="modal_telefono"
+                    name="telefono"
+                    inputmode="numeric"
+                    maxlength="10"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+
+                <p
+                    data-error-for="telefono"
+                    class="text-sm text-red-600 mt-1"
+                ></p>
+            </div>
+
+            <div>
+                <label
+                    for="modal_calle"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                    Calle
+                </label>
+
+                <input
+                    type="text"
+                    id="modal_calle"
+                    name="calle"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+
+                <p
+                    data-error-for="calle"
+                    class="text-sm text-red-600 mt-1"
+                ></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div>
+                    <label
+                        for="modal_num_ext"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Número exterior
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modal_num_ext"
+                        name="num_ext"
+                        inputmode="numeric"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+
+                    <p
+                        data-error-for="num_ext"
+                        class="text-sm text-red-600 mt-1"
+                    ></p>
+                </div>
+
+                <div>
+                    <label
+                        for="modal_num_int"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Número interior
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modal_num_int"
+                        name="num_int"
+                        inputmode="numeric"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+
+                    <p
+                        data-error-for="num_int"
+                        class="text-sm text-red-600 mt-1"
+                    ></p>
+                </div>
+
+            </div>
+
+            <div>
+                <label
+                    for="modal_colonia"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                    Colonia
+                </label>
+
+                <input
+                    type="text"
+                    id="modal_colonia"
+                    name="colonia"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+
+                <p
+                    data-error-for="colonia"
+                    class="text-sm text-red-600 mt-1"
+                ></p>
+            </div>
+
+            <div>
+                <label
+                    for="modal_estado"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                >
+                    Estado
+                </label>
+
+                <input
+                    type="text"
+                    id="modal_estado"
+                    name="estado"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                >
+
+                <p
+                    data-error-for="estado"
+                    class="text-sm text-red-600 mt-1"
+                ></p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div>
+                    <label
+                        for="modal_cp"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        Código Postal
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modal_cp"
+                        name="cp"
+                        inputmode="numeric"
+                        maxlength="5"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+
+                    <p
+                        data-error-for="cp"
+                        class="text-sm text-red-600 mt-1"
+                    ></p>
+                </div>
+
+                <div>
+                    <label
+                        for="modal_pais"
+                        class="block text-sm font-medium text-gray-700 mb-1"
+                    >
+                        País
+                    </label>
+
+                    <input
+                        type="text"
+                        id="modal_pais"
+                        name="pais"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    >
+
+                    <p
+                        data-error-for="pais"
+                        class="text-sm text-red-600 mt-1"
+                    ></p>
+                </div>
+
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4">
+
+                <button
+                    type="button"
+                    data-close-address-modal
+                    class="btn-animado bg-gray-200 text-gray-800 hover:bg-gray-300 font-semibold rounded-md"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    id="save-address-button"
+                    type="submit"
+                    class="btn-animado custom-bg-secondary custom-text-secondary-foreground font-semibold rounded-md"
+                >
+                    Guardar Domicilio
+                </button>
+
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
