@@ -695,6 +695,44 @@ def gestionar_devoluciones(request):
 
 # --- FIN: LÓGICA COMPLETA DE MIS DEVOLUCIONES ADMIN ---
 
+# --- INICIO: LÓGICA COMPLETA DE MIS COMPRAS ADMIN ---
+
+@staff_member_required
+def gestionar_compras(request):
+    pedidos = Pedido.objects.select_related(
+        'usuario',
+        'envio__domicilio'
+    ).all().order_by('-fecha')
+
+    compras = []
+
+    for pedido in pedidos:
+        detalles = DetallesPedido.objects.filter(
+            pedido=pedido
+        ).select_related('producto')
+
+        pago = Pago.objects.filter(
+            pedido=pedido
+        ).first()
+
+        compras.append({
+            'id': pedido.id,
+            'usuario': pedido.usuario,
+            'detalles': detalles,
+            'total': pedido.total_pagar,
+            'domicilio': pedido.envio.domicilio if pedido.envio else None,
+            'metodo_pago': pago.get_metodo_pago_display() if pago else 'No registrado',
+            'fecha': pedido.fecha,
+        })
+
+    context = {
+        'compras': compras
+    }
+
+    return render(request, 'admin/compras.html', context)
+
+# --- FIN: LÓGICA COMPLETA DE MIS COMPRAS ADMIN ---
+
 # --- INICIO: LÓGICA COMPLETA PARA CHATBOT ---
 
 INSTRUCCIONES_DEL_SISTEMA = """
