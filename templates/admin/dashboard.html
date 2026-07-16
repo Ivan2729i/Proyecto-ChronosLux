@@ -6,18 +6,28 @@
 <div class="container mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-6">
     <h1 class="font-serif font-black text-3xl md:text-3xl custom-text-foreground mb-4">
-          Administrar <span class="custom-text-secondary">Relojes</span>
+      Administrar <span class="custom-text-secondary">Relojes</span>
     </h1>
 
-    <div class="flex gap-4">
-      <a href="{% url 'gestionar_devoluciones' %}" class="btn-animado font-semibold rounded-md
-                     bg-gray-200 text-gray-800 hover:bg-gray-300">
+    <div class="flex flex-wrap gap-4">
+      <a href="{% url 'gestionar_compras' %}"
+         class="btn-animado font-semibold rounded-md
+                bg-[#080d2b] text-white hover:bg-[#121a4a]
+                transition-colors">
+        Ver Compras
+      </a>
+
+      <a href="{% url 'gestionar_devoluciones' %}"
+         class="btn-animado font-semibold rounded-md
+                bg-gray-200 text-gray-800 hover:bg-gray-300">
         Gestionar Devoluciones
       </a>
-      <a href="{% url 'crear_producto' %}" class="btn-animado font-semibold rounded-md
-                     custom-bg-secondary custom-text-secondary-foreground
-                     hover:bg-primary hover:text-primary-foreground
-                     transition-colors">
+
+      <a href="{% url 'crear_producto' %}"
+         class="btn-animado font-semibold rounded-md
+                custom-bg-secondary custom-text-secondary-foreground
+                hover:bg-primary hover:text-primary-foreground
+                transition-colors">
         Agregar Nuevo Reloj
       </a>
     </div>
@@ -36,11 +46,17 @@
           <th class="px-5 py-3">Acciones</th>
         </tr>
       </thead>
+
       <tbody>
         {% for producto in productos %}
         <tr class="border-b border-gray-200 hover:bg-gray-50">
-          <td class="px-5 py-4 text-sm">{{ producto.id }}</td>
-          <td class="px-5 py-4 text-sm font-semibold">{{ producto.nombre }}</td>
+          <td class="px-5 py-4 text-sm">
+            {{ producto.id }}
+          </td>
+
+          <td class="px-5 py-4 text-sm font-semibold">
+            {{ producto.nombre }}
+          </td>
 
           <td class="px-5 py-4 text-sm">
             {% if producto.es_exclusivo %}
@@ -54,16 +70,33 @@
             {% endif %}
           </td>
 
-          <td class="px-5 py-4 text-sm">{{ producto.marca.nombre }}</td>
-          <td class="px-5 py-4 text-sm">${{ producto.precio|floatformat:2|intcomma }}</td>
-          <td class="px-5 py-4 text-sm">{{ producto.stock }}</td>
+          <td class="px-5 py-4 text-sm">
+            {{ producto.marca.nombre }}
+          </td>
+
+          <td class="px-5 py-4 text-sm">
+            ${{ producto.precio|floatformat:2|intcomma }}
+          </td>
+
+          <td class="px-5 py-4 text-sm">
+            {{ producto.stock }}
+          </td>
+
           <td class="px-5 py-4 text-sm">
             <div class="flex items-center gap-4 whitespace-nowrap">
-              <a href="{% url 'editar_producto' producto.id %}" class="text-indigo-600 hover:text-indigo-900 mr-4">Editar</a>
-              <a href="{% url 'eliminar_producto' producto.id %}" class="text-red-600 hover:text-red-900">Eliminar</a>
+              <a href="{% url 'editar_producto' producto.id %}"
+                 class="text-indigo-600 hover:text-indigo-900">
+                Editar
+              </a>
+
+              <a href="{% url 'eliminar_producto' producto.id %}"
+                 class="text-red-600 hover:text-red-900">
+                Eliminar
+              </a>
             </div>
           </td>
         </tr>
+
         {% empty %}
         <tr>
           <td colspan="7" class="text-center py-10 text-gray-500">

@@ -18,6 +18,12 @@ urlpatterns = [
     path('administracion/editar/<str:producto_id>/', views.editar_producto, name='editar_producto'),
     path('administracion/eliminar/<str:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
 
+    path(
+        'administracion/compras/',
+        views.gestionar_compras,
+        name='gestionar_compras'
+    ),
+
     path('accounts/', include('accounts.urls')),
 
     path('checkout/', views.checkout_page, name='checkout_page'),
