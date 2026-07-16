@@ -1,5 +1,5 @@
 import os
-import uuid
+import uuid, re
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Producto, Categoria, Resena, ImgProducto, Marca, Domicilio, DetallesPedido, Pedido, Envio, Pago, Favorito, Carrito, DetalleCarrito, Devolucion
@@ -18,6 +18,7 @@ from django.conf import settings
 from django.http import JsonResponse, StreamingHttpResponse
 from openai import OpenAI, RateLimitError, APIError
 from watches.models import Producto
+
 
 
 def get_object_or_404_mongo(model_or_queryset, **kwargs):
@@ -551,78 +552,241 @@ def checkout_page(request):
 
 @login_required
 def place_order(request):
-    if request.method == 'POST':
-        cart = _get_user_cart(request)
-        domicilio_id = request.POST.get('domicilio_seleccionado')
-        metodo_pago = request.POST.get('metodo_pago')
+    if request.method != 'POST':
+        return redirect('home')
 
-        if not cart or not cart.detallecarrito_set.all() or not domicilio_id or not metodo_pago:
-            messages.error(request, 'Hubo un error con tu pedido. Por favor, intenta de nuevo.')
+    cart = _get_user_cart(request)
+    domicilio_id = request.POST.get('domicilio_seleccionado')
+    metodo_pago = request.POST.get('metodo_pago')
+
+    if not cart or not cart.detallecarrito_set.exists():
+        messages.error(
+            request,
+            'Tu carrito está vacío o ya no se encuentra disponible.'
+        )
+        return redirect('checkout_page')
+
+    if not domicilio_id:
+        messages.error(
+            request,
+            'Debes seleccionar una dirección de envío.'
+        )
+        return redirect('checkout_page')
+
+    metodos_validos = {
+        'tarjeta_credito',
+        'tarjeta_debito',
+        'paypal'
+    }
+
+    if metodo_pago not in metodos_validos:
+        messages.error(
+            request,
+            'Debes seleccionar un método de pago válido.'
+        )
+        return redirect('checkout_page')
+
+    # Validar los campos simulados de tarjeta
+    if metodo_pago in {'tarjeta_credito', 'tarjeta_debito'}:
+        numero_tarjeta = re.sub(
+            r'\D',
+            '',
+            request.POST.get('numero_tarjeta', '')
+        )
+
+        nombre_titular = (
+            request.POST
+            .get('nombre_titular', '')
+            .strip()
+        )
+
+        fecha_vencimiento_mes = (
+            request.POST
+            .get('fecha_vencimiento_mes', '')
+            .strip()
+        )
+
+        fecha_vencimiento_anio = (
+            request.POST
+            .get('fecha_vencimiento_anio', '')
+            .strip()
+        )
+
+        cvv = (
+            request.POST
+            .get('cvv', '')
+            .strip()
+        )
+
+        # Número de tarjeta: exactamente 16 dígitos
+        if not re.fullmatch(r'\d{16}', numero_tarjeta):
+            messages.error(
+                request,
+                'El número de tarjeta debe contener exactamente 16 dígitos.'
+            )
             return redirect('checkout_page')
 
-        #  --- VERIFICACIÓN DE STOCK ---
-        detalles_del_carrito = cart.detallecarrito_set.all()
-        for item in detalles_del_carrito:
-            producto = item.producto
-            cantidad_pedida = item.cantidad
+        # Titular: mínimo 3 caracteres y dos palabras
+        palabras_titular = [
+            palabra
+            for palabra in re.split(r'\s+', nombre_titular)
+            if palabra
+        ]
 
-            if producto.stock < cantidad_pedida:
-                messages.error(
-                    request,
-                    f"No hay suficiente stock para '{producto.nombre}'. "
-                    f"Cantidad disponible: {producto.stock}."
-                )
-                return redirect('checkout_page')
-
-        domicilio = get_object_or_404_mongo(Domicilio, pk=domicilio_id, usuario=request.user)
-        total_price = detalles_del_carrito.aggregate(total=Sum('subtotal'))['total'] or 0
-
-        # Crear el Envío
-        fecha_envio = timezone.now()
-        fecha_llegada = fecha_envio + timedelta(days=7)
-        envio = Envio.objects.create(
-            domicilio=domicilio,
-            fecha_envio=fecha_envio,
-            fecha_llegada=fecha_llegada
+        nombre_valido = re.fullmatch(
+            r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ' -]+",
+            nombre_titular
         )
 
-        # Crear el Pedido
-        pedido = Pedido.objects.create(
-            usuario=request.user,
-            envio=envio,
-            carrito=cart,
-            fecha=timezone.now(),
-            subtotal=total_price,
-            total_pagar=total_price
-        )
-
-        # Crear los Detalles del Pedido y DESCONTAR STOCK
-        for item in detalles_del_carrito:
-            DetallesPedido.objects.create(
-                pedido=pedido,
-                producto=item.producto,
-                cantidad=item.cantidad,
-                precio_unitario=item.precio_unitario
+        if (
+                len(nombre_titular) < 3 or
+                len(palabras_titular) < 2 or
+                not nombre_valido
+        ):
+            messages.error(
+                request,
+                'El titular debe contener al menos nombre y apellido.'
             )
-            item.producto.stock -= item.cantidad
-            item.producto.save()
+            return redirect('checkout_page')
 
-        # Crear el Pago
-        Pago.objects.create(
+        # CVV: exactamente 3 dígitos
+        if not re.fullmatch(r'\d{3}', cvv):
+            messages.error(
+                request,
+                'El CVV debe contener exactamente 3 números.'
+            )
+            return redirect('checkout_page')
+
+        # Fecha de vencimiento
+        try:
+            mes_vencimiento = int(
+                fecha_vencimiento_mes
+            )
+
+            anio_vencimiento = int(
+                fecha_vencimiento_anio
+            )
+
+        except (TypeError, ValueError):
+            messages.error(
+                request,
+                'Debes seleccionar una fecha de vencimiento válida.'
+            )
+            return redirect('checkout_page')
+
+        fecha_actual = timezone.localdate()
+
+        if mes_vencimiento < 1 or mes_vencimiento > 12:
+            messages.error(
+                request,
+                'El mes de vencimiento no es válido.'
+            )
+            return redirect('checkout_page')
+
+        if (
+                anio_vencimiento < fecha_actual.year or
+                anio_vencimiento > fecha_actual.year + 15
+        ):
+            messages.error(
+                request,
+                'El año de vencimiento no es válido.'
+            )
+            return redirect('checkout_page')
+
+        if (
+                anio_vencimiento == fecha_actual.year and
+                mes_vencimiento < fecha_actual.month
+        ):
+            messages.error(
+                request,
+                'La tarjeta ya se encuentra vencida.'
+            )
+            return redirect('checkout_page')
+
+    # Validar los campos simulados de PayPal
+    elif metodo_pago == 'paypal':
+        paypal_correo = request.POST.get('paypal_correo', '').strip()
+        paypal_password = request.POST.get('paypal_password', '').strip()
+
+        if not paypal_correo or not paypal_password:
+            messages.error(
+                request,
+                'Debes completar el correo y la contraseña de PayPal.'
+            )
+            return redirect('checkout_page')
+
+    detalles_del_carrito = cart.detallecarrito_set.select_related(
+        'producto'
+    ).all()
+
+    # Verificar el stock antes de crear el pedido
+    for item in detalles_del_carrito:
+        producto = item.producto
+        cantidad_pedida = item.cantidad
+
+        if producto.stock < cantidad_pedida:
+            messages.error(
+                request,
+                f"No hay suficiente stock para '{producto.nombre}'. "
+                f"Cantidad disponible: {producto.stock}."
+            )
+            return redirect('checkout_page')
+
+    domicilio = get_object_or_404_mongo(
+        Domicilio,
+        pk=domicilio_id,
+        usuario=request.user
+    )
+
+    total_price = detalles_del_carrito.aggregate(
+        total=Sum('subtotal')
+    )['total'] or 0
+
+    fecha_envio = timezone.now()
+    fecha_llegada = fecha_envio + timedelta(days=7)
+
+    envio = Envio.objects.create(
+        domicilio=domicilio,
+        fecha_envio=fecha_envio,
+        fecha_llegada=fecha_llegada
+    )
+
+    pedido = Pedido.objects.create(
+        usuario=request.user,
+        envio=envio,
+        carrito=cart,
+        fecha=timezone.now(),
+        subtotal=total_price,
+        total_pagar=total_price
+    )
+
+    for item in detalles_del_carrito:
+        DetallesPedido.objects.create(
             pedido=pedido,
-            metodo_pago=metodo_pago,
-            monto_pagar=total_price,
-            estado='aprobado'
+            producto=item.producto,
+            cantidad=item.cantidad,
+            precio_unitario=item.precio_unitario
         )
 
-        # Actualizamos el estado del carrito a 'convertido'
-        cart.estado = 'convertido'
-        cart.save()
+        item.producto.stock -= item.cantidad
+        item.producto.save()
 
-        # Redirigir a confirmación
-        return redirect('order_confirmation', order_id=str(pedido.id))
+    Pago.objects.create(
+        pedido=pedido,
+        metodo_pago=metodo_pago,
+        monto_pagar=total_price,
+        estado='aprobado',
+        fecha_pago=timezone.now()
+    )
 
-    return redirect('home')
+    cart.estado = 'convertido'
+    cart.save()
+
+    return redirect(
+        'order_confirmation',
+        order_id=str(pedido.id)
+    )
+
 
 @login_required
 def order_confirmation(request, order_id):

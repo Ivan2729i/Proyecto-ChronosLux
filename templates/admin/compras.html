@@ -142,10 +142,16 @@
                 PayPal
               </span>
 
-            {% elif compra.metodo_pago == 'Tarjeta' %}
+            {% elif compra.metodo_pago == 'Tarjeta de Crédito' %}
               <span class="px-3 py-1 font-semibold leading-tight
                            text-green-700 bg-green-100 rounded-full">
-                Tarjeta
+                Tarjeta de Crédito
+              </span>
+
+            {% elif compra.metodo_pago == 'Tarjeta de Débito' %}
+              <span class="px-3 py-1 font-semibold leading-tight
+                           text-purple-700 bg-purple-100 rounded-full">
+                Tarjeta de Débito
               </span>
 
             {% else %}

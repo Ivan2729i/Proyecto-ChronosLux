@@ -132,16 +132,23 @@ class DetallesPedido(models.Model):
 
 class Pago(models.Model):
     METODOS = (
-        ('tarjeta', 'Tarjeta'),
+        ('tarjeta_credito', 'Tarjeta de Crédito'),
+        ('tarjeta_debito', 'Tarjeta de Débito'),
         ('paypal', 'PayPal'),
     )
+
     ESTADOS = (
         ('pendiente', 'Pendiente'),
         ('aprobado', 'Aprobado'),
         ('rechazado', 'Rechazado'),
     )
+
     metodo_pago = models.CharField(max_length=20, choices=METODOS)
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADOS,
+        default='pendiente'
+    )
     fecha_pago = models.DateTimeField(blank=True, null=True)
     monto_pagar = models.DecimalField(max_digits=12, decimal_places=2)
     pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)

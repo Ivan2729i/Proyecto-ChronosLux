@@ -14,7 +14,7 @@ import os
 from watches.context_processors import home_page_context
 from bson import ObjectId
 from bson.errors import InvalidId
-from django.http import Http404
+from django.http import Http404, JsonResponse
 from django.core.exceptions import ValidationError
 
 
@@ -107,20 +107,49 @@ def domicilio_list(request):
 
 @login_required
 def domicilio_create(request):
+    es_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+
     if request.method == 'POST':
         form = DomicilioForm(request.POST)
+
         if form.is_valid():
             domicilio = form.save(commit=False)
             domicilio.usuario = request.user
             domicilio.save()
+
+            if es_ajax:
+                return JsonResponse({
+                    'success': True,
+                    'domicilio': {
+                        'id': str(domicilio.id),
+                        'telefono': domicilio.telefono or '',
+                        'calle': domicilio.calle,
+                        'num_ext': domicilio.num_ext,
+                        'num_int': domicilio.num_int or '',
+                        'colonia': domicilio.colonia,
+                        'estado': domicilio.estado,
+                        'cp': domicilio.cp,
+                        'pais': domicilio.pais,
+                    }
+                })
+
             return redirect('domicilio_list')
+
+        if es_ajax:
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors.get_json_data()
+            }, status=400)
+
     else:
         form = DomicilioForm()
 
     context = {
         'form': form
     }
+
     return render(request, 'home/domicilio_form.html', context)
+
 
 @login_required
 def domicilio_edit(request, domicilio_id):
