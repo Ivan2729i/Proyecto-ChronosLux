@@ -97,11 +97,13 @@ def catalog(request):
         items = sorted(items, key=lambda x: x.nombre)
 
     favoritos_ids = []
+
     if request.user.is_authenticated:
-        favoritos_ids = [
-            str(producto_id)
-            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
-        ]
+        favoritos_ids = list(
+            Favorito.objects.filter(
+                usuario=request.user
+            ).values_list('producto_id', flat=True)
+        )
 
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
@@ -484,11 +486,13 @@ def exclusivos_catalog(request):
         items = items.order_by('nombre')
 
     favoritos_ids = []
+
     if request.user.is_authenticated:
-        favoritos_ids = [
-            str(producto_id)
-            for producto_id in Favorito.objects.filter(usuario=request.user).values_list('producto_id', flat=True)
-        ]
+        favoritos_ids = list(
+            Favorito.objects.filter(
+                usuario=request.user
+            ).values_list('producto_id', flat=True)
+        )
 
     tipos_disponibles = Categoria.objects.values_list('tipo', flat=True).distinct().order_by('tipo')
     generos_disponibles = Categoria.objects.values_list('genero', flat=True).distinct().order_by('genero')
